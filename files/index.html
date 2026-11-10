@@ -1,0 +1,2668 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>نظام الجداول الدراسية والإدارة المتكامل</title>
+    <meta name="theme-color" content="#080c14">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="جدولي">
+    <style>
+        :root {
+            --bg-color: #080c14;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-border: rgba(56, 189, 248, 0.15);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.35);
+            --cec-color: #0ea5e9;  
+            --cet-color: #10b981;  
+            --gen-color: #ef4444;  
+            --ept-color: #8b5cf6;  
+            --hum-color: #f59e0b;  
+        }
+
+        body.light-mode {
+            --bg-color: #f1f5f9;
+            --text-color: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(2, 132, 199, 0.2);
+            --primary: #0284c7;
+            --primary-glow: rgba(2, 132, 199, 0.25);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 25px 20px calc(var(--nav-h, 0px) + 28px) 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header { text-align: center; margin-bottom: 25px; }
+        h1 { font-size: 2.2rem; margin: 0; color: var(--text-color); text-shadow: 0 0 25px var(--primary-glow); }
+
+        .screen { display: none; width: 100%; max-width: 1250px; margin: 0 auto; animation: fadeIn 0.4s ease-in-out; }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box {
+            background-color: var(--card-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border); max-width: 420px; margin: 70px auto;
+            padding: 40px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); text-align: center;
+        }
+        .input-field {
+            width: 100%; padding: 14px 16px; margin: 12px 0; border-radius: 12px;
+            border: 1px solid var(--card-border); background-color: rgba(0, 0, 0, 0.2); 
+            color: var(--text-color); box-sizing: border-box; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+        body.light-mode .input-field { background-color: rgba(255, 255, 255, 0.8); }
+        .input-field:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
+        .btn {
+            background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: white; border: none;
+            padding: 14px 20px; width: 100%; border-radius: 12px; font-size: 1rem;
+            cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5); }
+        .btn-small { padding: 9px 18px; font-size: 0.88rem; width: auto; cursor: pointer; border: none; border-radius: 10px; color: white; background-color: var(--primary); font-weight: 600; transition: 0.2s; }
+        .btn-small:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .btn-warning { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+        .btn-success { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+
+        .admin-panel { 
+            background-color: var(--card-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border); padding: 28px; border-radius: 20px; 
+            margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.25); overflow-x: auto; 
+        }
+        .admin-panel h3 {
+            margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px; display: flex; align-items: center; gap: 10px;
+        }
+        .admin-controls { display: flex; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+        .admin-controls input, .admin-controls select {
+            padding: 12px 14px; border-radius: 12px; border: 1px solid var(--card-border);
+            background-color: rgba(0, 0, 0, 0.2); color: var(--text-color); flex: 1; min-width: 170px; box-sizing: border-box; outline: none; font-size: 0.95rem;
+        }
+        body.light-mode .admin-controls input, body.light-mode .admin-controls select { background-color: rgba(255, 255, 255, 0.8); }
+        .admin-controls input:focus, .admin-controls select:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
+        hr { border-color: var(--card-border); margin: 25px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 650px; }
+        th, td { padding: 14px 16px; border: 1px solid var(--card-border); text-align: right; color: var(--text-color); font-size: 0.92rem; }
+        th { background-color: rgba(56, 189, 248, 0.1); color: var(--primary); font-weight: 700; }
+        tr:hover td { background-color: rgba(56, 189, 248, 0.04); }
+        .logout-btn { background: linear-gradient(135deg, #dc2626, #ef4444); width: auto; padding: 10px 22px; margin-bottom: 25px; border-radius: 12px; font-weight: bold;}
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); padding: 30px; border-radius: 22px; width: 90%; max-width: 440px; color: var(--text-color); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        
+        .view-day .day-column { display: none; max-width: 550px; margin: 0 auto; }
+        .view-day .day-column.active { display: block; }
+        .view-week { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; align-items: start; }
+        .view-week .day-column { display: block !important; max-width: none; margin: 0; }
+        .day-column { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .day-title { text-align: center; font-size: 1.35rem; font-weight: bold; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid var(--card-border); color: var(--primary); }
+        
+        .card { 
+            background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; 
+            position: relative; direction: ltr; text-align: left; box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-top-left-radius: 14px; border-bottom-left-radius: 14px; }
+        .card.cec::before { background-color: var(--cec-color); } .card.cet::before { background-color: var(--cet-color); }
+        .card.gen::before { background-color: var(--gen-color); } .card.ept::before { background-color: var(--ept-color); }
+        .card.hum::before { background-color: var(--hum-color); }
+        
+        .time { font-size: 0.85rem; color: var(--primary); margin-bottom: 6px; font-weight: 600; }
+        .subject { font-size: 1.15rem; font-weight: bold; margin: 6px 0; color: var(--text-color); }
+        .details { font-size: 0.9rem; color: var(--text-color); opacity: 0.8; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; background-color: rgba(128,128,128,0.1); }
+        .badge.lec { color: #38bdf8; } .badge.lab { color: #34d399; } .badge.tut { color: #fbbf24; } .badge.online { color: #c084fc; }
+
+        .drive-link-btn { color: var(--primary); text-decoration: none; font-size: 0.8rem; font-weight: bold; border: 1px solid var(--card-border); padding: 4px 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.1); transition: 0.2s; }
+        .drive-link-btn:hover { background: var(--primary); color: white; }
+
+        .quick-links-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; align-items: center; }
+        .quick-circle {
+            width: 50px; height: 50px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 0.85rem;
+            font-weight: bold; color: white; text-decoration: none; transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .quick-circle:hover { transform: scale(1.12); }
+        .qc-1 { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .qc-2 { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .qc-3 { background: linear-gradient(135deg, #10b981, #059669); }
+        
+        .top-tools-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--card-bg); backdrop-filter: blur(20px); border-top: 1px solid var(--card-border);
+            padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+        }
+        .view-toggles { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .view-btn { background-color: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid var(--card-border); padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+        .view-btn.active { background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: #fff; font-weight: bold; border-color: transparent; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4); }
+        .day-tabs { display: flex; justify-content: space-between; overflow-x: auto; gap: 8px; }
+        .tab-btn { background-color: transparent; color: var(--text-color); border: none; font-size: 0.88rem; padding: 8px 16px; border-radius: 15px; cursor: pointer; white-space: nowrap; opacity: 0.7; transition: 0.2s; }
+        .tab-btn.active { background-color: rgba(56, 189, 248, 0.2); color: var(--primary); font-weight: bold; opacity: 1; }
+        .hide-tabs .day-tabs { display: none; }
+        .empty-msg { text-align: center; color: var(--text-color); opacity: 0.6; padding: 25px; }
+
+        .student-view-section { display: none; }
+        .student-view-section.active { display: block; }
+
+        .profile-container { display: flex; flex-direction: column; gap: 20px; max-width: 750px; margin: 0 auto; padding-bottom: 40px; }
+        .profile-card-header {
+            background-color: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border);
+            border-radius: 24px; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25); position: relative; overflow: hidden;
+        }
+        .profile-card-header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--ept-color));
+        }
+        .profile-avatar { 
+            width: 105px; height: 105px; border-radius: 50%; border: 3px solid var(--primary); 
+            display: flex; align-items: center; justify-content: center; font-size: 2.5rem; 
+            background: rgba(0,0,0,0.3); cursor: pointer; box-shadow: 0 0 25px var(--primary-glow); transition: 0.3s;
+            overflow: hidden; object-fit: cover;
+        }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-name { font-size: 1.65rem; font-weight: bold; color: var(--text-color); margin: 12px 0 4px 0; }
+        .profile-id { font-size: 0.95rem; color: var(--text-color); opacity: 0.8; background: rgba(56,189,248,0.1); padding: 4px 18px; border-radius: 20px; border: 1px solid var(--card-border); }
+
+        .profile-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; margin-top: 22px; }
+        .stat-box { background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 16px; padding: 14px 8px; text-align: center; }
+        .stat-value { font-size: 1.35rem; font-weight: bold; color: var(--primary); margin-bottom: 4px; }
+        .stat-label { font-size: 0.78rem; color: var(--text-color); opacity: 0.75; }
+
+        .profile-section { background-color: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 20px; padding: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .profile-section-title { margin-top: 0; color: var(--primary); font-size: 1.15rem; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        
+        .todo-input-row, .friend-input-row, .group-input-row { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .list-container { display: flex; flex-direction: column; gap: 10px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--card-border); font-size: 0.9rem; color: var(--text-color); }
+
+        .group-chat-box { background: rgba(15,23,42,0.5); border: 1px solid var(--card-border); border-radius: 14px; padding: 15px; margin-top: 15px; }
+        .group-messages { max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+        .g-msg { background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid var(--card-border); }
+
+        .chatbot-toggle-btn {
+            position: fixed; bottom: calc(var(--nav-h, 0px) + 14px); right: 25px; width: 58px; height: 58px;
+            border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: white;
+            border: none; cursor: pointer; font-size: 1.6rem; display: flex; align-items: center; justify-content: center; z-index: 1001;
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5); transition: 0.3s;
+        }
+        .chatbot-toggle-btn:hover { transform: scale(1.1); }
+        .chatbot-window {
+            position: fixed; bottom: calc(var(--nav-h, 0px) + 84px); right: 25px; width: 350px; height: 490px;
+            background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
+            display: none; flex-direction: column; z-index: 1001; overflow: hidden; backdrop-filter: blur(20px);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.4);
+        }
+        .chatbot-window.active { display: flex; }
+        .chatbot-header { background-color: rgba(0,0,0,0.2); color: var(--primary); padding: 14px 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); }
+        .chatbot-close-btn { background: none; border: none; color: var(--text-color); font-size: 1.2rem; cursor: pointer; }
+        .chatbot-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; }
+        .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; line-height: 1.4; word-wrap: break-word; color: var(--text-color); }
+        .chat-msg.bot { background-color: rgba(0,0,0,0.25); border: 1px solid var(--card-border); }
+        .chat-msg.user { background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: #fff; align-self: flex-end; }
+        
+        .chat-options-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+        .chat-option-pill { background: rgba(56, 189, 248, 0.15); border: 1px solid var(--primary); color: var(--primary); padding: 6px 12px; border-radius: 16px; font-size: 0.78rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .chat-option-pill:hover { background: var(--primary); color: white; }
+
+        .chatbot-input-area { display: flex; padding: 12px; gap: 8px; border-top: 1px solid var(--card-border); background-color: rgba(0,0,0,0.15); }
+        .chatbot-input { flex: 1; padding: 10px 14px; border-radius: 20px; border: 1px solid var(--card-border); background-color: rgba(0,0,0,0.2); color: var(--text-color); font-size: 0.88rem; outline: none; }
+        .chatbot-send-btn { background: linear-gradient(135deg, #0ea5e9, #38bdf8); border: none; color: white; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .chat-box{max-width:560px;height:82vh;display:flex;flex-direction:column;padding:16px}
+        .chat-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--card-border);color:var(--primary)}
+        .chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:12px 2px}
+        .cm{max-width:80%;padding:8px 12px;border-radius:14px;font-size:.9rem;word-wrap:break-word;display:flex;flex-direction:column;gap:4px}
+        .cm.me{align-self:flex-start;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#fff}
+        .cm.them{align-self:flex-end;background:rgba(0,0,0,.25);border:1px solid var(--card-border)}
+        .ct{font-size:.68rem;opacity:.65}
+        .cm-img{max-width:100%;max-height:260px;border-radius:10px;cursor:pointer}
+        .cm-file{color:inherit;text-decoration:underline;word-break:break-all}
+        .cm audio{max-width:100%}
+        .chat-compose{display:flex;gap:6px;align-items:center;padding-top:10px;border-top:1px solid var(--card-border)}
+        .chat-compose .input-field{margin:0;padding:10px 12px}
+        .cbtn{cursor:pointer;font-size:1.3rem;background:none;border:none;padding:4px}
+        .cbtn.rec{animation:recpulse 1s infinite}
+        @keyframes recpulse{50%{opacity:.3}}
+
+
+        /* ================= تحسين الشكل للموبايل والكمبيوتر ================= */
+        html { -webkit-text-size-adjust: 100%; }
+        body { overflow-x: hidden; }
+        img, video, canvas { max-width: 100%; }
+        .app-logo { width: 64px; height: 64px; border-radius: 16px; display: block; margin: 0 auto 8px; box-shadow: 0 0 18px var(--primary-glow); }
+        .student-logout { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 14px; width: auto; margin: 0; padding: 8px 14px; font-size: 0.85rem; z-index: 100; }
+        .bottom-nav { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+        .day-tabs, .view-toggles { scrollbar-width: none; }
+        .day-tabs::-webkit-scrollbar { display: none; }
+        
+
+        /* ---------- الموبايل ---------- */
+        @media (max-width: 640px) {
+            body { padding: calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(var(--nav-h, 0px) + 24px) 12px; }
+            header { margin-bottom: 14px; padding-top: 26px; }
+            .app-logo { width: 48px; height: 48px; border-radius: 13px; margin-bottom: 6px; }
+            h1 { font-size: 1.35rem; line-height: 1.4; }
+            .student-logout { top: calc(env(safe-area-inset-top, 0px) + 10px); left: 10px; padding: 6px 12px; font-size: 0.78rem; border-radius: 10px; }
+            .login-box { margin: 20px auto; padding: 26px 20px; border-radius: 20px; }
+            .quick-links-bar { gap: 12px; margin-bottom: 12px; }
+            .quick-circle { width: 42px; height: 42px; font-size: 0.75rem; }
+            .top-tools-bar { gap: 8px; margin-bottom: 14px; }
+            .top-tools-bar .btn-small, .top-tools-bar button { padding: 7px 12px; font-size: 0.78rem; border-radius: 9px; }
+            .admin-panel { padding: 16px; border-radius: 16px; margin-bottom: 16px; }
+            .admin-panel h3 { font-size: 1.05rem; }
+            .admin-controls { gap: 8px; }
+            .admin-controls input, .admin-controls select { min-width: 130px; padding: 10px 12px; font-size: 0.9rem; }
+            th, td { padding: 10px 10px; font-size: 0.85rem; }
+            .day-column { padding: 14px; border-radius: 16px; }
+            .day-title { font-size: 1.15rem; margin-bottom: 12px; }
+            .card { padding: 14px; margin-bottom: 12px; }
+            .subject { font-size: 1.05rem; }
+            .view-week { grid-template-columns: 1fr; gap: 14px; }
+            .profile-card-header { padding: 22px 14px; }
+            .profile-section { padding: 16px; }
+            .profile-stats-grid { gap: 8px; }
+            .stat-value { font-size: 1.15rem; }
+            .modal-content { width: 94%; padding: 22px 18px; }
+            .bottom-nav { padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); gap: 4px; }
+            #bottomNav > .view-toggles:first-child { flex-wrap: nowrap; gap: 4px; }
+            #bottomNav > .view-toggles:first-child .view-btn { flex: 1; padding: 9px 2px; font-size: 0.76rem; border-radius: 12px; white-space: nowrap; text-align: center; }
+            #scheduleSubToggles { margin-top: 0 !important; }
+            #scheduleSubToggles .view-btn { padding: 5px 14px !important; font-size: 0.74rem !important; }
+            .day-tabs { margin-top: 0 !important; justify-content: space-between; gap: 2px; }
+            .tab-btn { flex: 1; padding: 8px 2px; font-size: 0.8rem; border-radius: 12px; }
+            .chatbot-toggle-btn { width: 50px; height: 50px; right: 14px; font-size: 1.4rem; }
+            .chatbot-window { right: 8px; left: 8px; width: auto; height: min(70vh, 520px); bottom: calc(var(--nav-h, 0px) + 72px); }
+            .chat-box { width: 100%; max-width: none; height: calc(100dvh - 40px); max-height: none; padding: 12px; }
+            .cm { max-width: 88%; }
+            #aiReviewOverlay { padding: 8px !important; }
+        }
+
+        /* ---------- شاشات متوسطة (تابلت) ---------- */
+        @media (min-width: 641px) and (max-width: 899px) {
+            body { padding-left: 16px; padding-right: 16px; }
+            .view-week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        /* ---------- الكمبيوتر ---------- */
+        @media (min-width: 900px) {
+            body { padding-top: 30px; }
+            header { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 26px; }
+            .app-logo { margin: 0; width: 60px; height: 60px; }
+            h1 { font-size: 2rem; }
+            .screen { max-width: 1200px; }
+            .view-day .day-column { max-width: 780px; }
+            .view-week { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+            .view-week .day-column { padding: 16px; }
+            .view-week .card { padding: 14px; }
+            .profile-container { max-width: 900px; }
+            .bottom-nav { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 28px; padding: 10px 24px; }
+            .bottom-nav .view-toggles { margin-top: 0 !important; }
+            .bottom-nav .day-tabs { margin-top: 0 !important; justify-content: center; overflow: visible; }
+            .tab-btn { padding: 7px 18px; }
+            .chatbot-toggle-btn { right: 30px; }
+            .chatbot-window { right: 30px; }
+        }
+        @media (min-width: 1100px) {
+            #adminScreen.active { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; column-gap: 24px; align-items: start; }
+            #adminScreen.active > :not(.admin-panel) { grid-column: 1 / -1; }
+            #adminScreen.active > .admin-panel:has(table) { grid-column: 1 / -1; }
+        }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    </style>
+</head>
+<body>
+
+    <header><img class="app-logo" src="icon-192.png" alt="logo"><h1 id="pageTitle">تسجيل الدخول للنظام</h1></header>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-box">
+            <h2>تسجيل الدخول</h2>
+            <p style="opacity: 0.7; font-size: 0.9rem; margin-bottom: 20px;">أدخل بيانات حسابك للمتابعة (أونلاين / أفلاين)</p>
+            <input type="text" id="loginId" class="input-field" placeholder="الـ ID (رقم الطالب أو الأدمن)">
+            <input type="password" id="loginPass" class="input-field" placeholder="كلمة المرور">
+            <button class="btn" onclick="login()">دخول المنصة</button>
+            <p id="loginError" style="color: var(--gen-color); display: none; margin-top: 12px;">البيانات غير صحيحة!</p>
+        </div>
+    </div>
+
+    <!-- شاشة الأدمن -->
+    <div id="adminScreen" class="screen">
+        <button class="btn logout-btn" onclick="logout()">تسجيل خروج 🚪</button>
+        
+        <!-- بروفايل الأدمن -->
+        <div class="admin-panel">
+            <h3 style="color: var(--primary);">👤 بروفايل المدير وإدارة البيانات</h3>
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 18px; flex-wrap: wrap;">
+                <div class="profile-avatar" id="adminAvatarDisplay" onclick="document.getElementById('adminAvatarFileInput').click()" style="width: 75px; height: 75px; font-size: 2.1rem; cursor:pointer;" title="اضغط لرفع صورة الأدمن">
+                    👨‍💼
+                </div>
+                <input type="file" id="adminAvatarFileInput" accept="image/*" style="display:none;" onchange="uploadAdminAvatar(event)">
+                <div>
+                    <h4 id="adminProfileName" style="margin:0; color:var(--text-color); font-size: 1.3rem;">الاسم</h4>
+                    <span id="adminProfileId" style="font-size:0.9rem; opacity:0.8;">ID: 000000</span>
+                </div>
+            </div>
+            <div class="admin-controls">
+                <input type="text" id="adminUpdateName" placeholder="الاسم الجديد">
+                <input type="text" id="adminUpdateId" placeholder="الـ ID الجديد">
+                <input type="password" id="adminUpdatePass" placeholder="كلمة المرور الجديدة">
+                <button class="btn btn-small" onclick="updateAdminData()">حفظ التعديلات</button>
+            </div>
+        </div>
+
+        <!-- رسائل الطلاب والرد -->
+        <div class="admin-panel">
+            <h3 style="color: var(--hum-color);">📬 رسائل الطلاب الواردة والرد المباشر</h3>
+            <div id="adminMessagesContainer" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- تعديل نسبة الغياب للمادة المسجلة وتحديثها عند الكل -->
+        <div class="admin-panel">
+            <h3 style="color: var(--primary);">⚙️ تعديل نسبة الغياب المسموحة (للمادة المسجلة وتحديثها عند الكل)</h3>
+            <div class="admin-controls">
+                <select id="globalAbsenceSubjectSelect"></select>
+                <input type="number" id="globalNewAbsenceInput" placeholder="نسبة الغياب الجديدة %" style="max-width: 180px;">
+                <button class="btn btn-small btn-success" onclick="updateGlobalSubjectAbsence()">تحديث النسبة للجميع</button>
+            </div>
+        </div>
+
+        <!-- إدارة المواد المتاحة للاختيار (مع الـ 20 خانة احتياطية) -->
+        <div class="admin-panel">
+            <h3 style="color: var(--cet-color);">📚 إدارة قائمة المواد المسجلة (مع 20 خانة احتياطية)</h3>
+            <div class="admin-controls">
+                <input type="text" id="newSubjectOptionInput" placeholder="أضف مادة جديدة للقائمة...">
+                <button class="btn btn-small" onclick="addNewSubjectOption()">إضافة للقائمة</button>
+            </div>
+            <div id="subjectsOptionsList" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;"></div>
+        </div>
+
+        <!-- تحليل الجدول بالذكاء الاصطناعي -->
+        <div class="admin-panel">
+            <h3 style="color: var(--ept-color);">✨ تحليل صورة الجدول بالذكاء الاصطناعي</h3>
+            <div class="admin-controls">
+                <input type="text" id="aiNewScheduleName" placeholder="اسم الجدول الجديد">
+                <input type="file" id="scheduleImageInput" accept="image/*" style="padding: 9px; cursor: pointer;">
+                <button class="btn btn-small" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);" onclick="parseScheduleImageAI()">تحليل وإنشاء الجدول</button>
+            </div>
+            <div id="aiLoadingStatus" style="display: none; color: var(--primary); text-align: center; margin-top: 10px;">جاري تحليل الصورة واستخراج المواد بالذكاء الاصطناعي... 🤖</div>
+        </div>
+
+        <!-- تخصيص الدوائر العلوية -->
+        <div class="admin-panel">
+            <h3 style="color: var(--cet-color);">🔗 تخصيص الروابط والدوائر العلوية</h3>
+            <div id="circlesAdminContainer"></div>
+            <button class="btn btn-small btn-success" style="margin-top: 10px;" onclick="saveCirclesSettings()">حفظ إعدادات الدوائر</button>
+        </div>
+
+        <!-- إنشاء جدول جديد وإضافة مواد مع تحديد نسبة غياب اليوم (%) -->
+        <div class="admin-panel">
+            <h3>📅 إنشاء جدول جديد وإضافة مواد</h3>
+            <div class="admin-controls">
+                <input type="text" id="newScheduleName" placeholder="اسم الجدول الجديد">
+                <button class="btn btn-small" onclick="createNewSchedule()">إنشاء جدول</button>
+            </div>
+            <hr>
+            <h4 style="color: var(--primary); margin-bottom: 12px;">إضافة محاضرة للجدول (مع تحديد نسبة غياب هذا اليوم %)</h4>
+            <div class="admin-controls">
+                <select id="targetScheduleId"></select>
+                <select id="subjectDay">
+                    <option value="0">الأحد</option>
+                    <option value="1">الإثنين</option>
+                    <option value="2">الثلاثاء</option>
+                    <option value="3">الأربعاء</option>
+                    <option value="4">الخميس</option>
+                </select>
+                <!-- اختيار المادة المسجلة -->
+                <select id="subjectSelectOption"></select>
+                
+                <!-- الوقت من كذا لكذا -->
+                <div style="display: flex; gap: 6px; flex: 2; align-items: center;">
+                    <div style="display: flex; flex-direction: column; flex: 1;">
+                        <span style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px;">من الوقت:</span>
+                        <input type="time" id="timeFrom" class="input-field" style="margin:0; padding: 10px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; flex: 1;">
+                        <span style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px;">إلى الوقت:</span>
+                        <input type="time" id="timeTo" class="input-field" style="margin:0; padding: 10px;">
+                    </div>
+                </div>
+
+                <input type="text" id="subjectDetails" placeholder="التفاصيل (القاعة/المعمل)">
+                <!-- نسبة الغياب المضافة لهذا اليوم/المحاضرة -->
+                <div style="display: flex; flex-direction: column; flex: 1; min-width: 150px;">
+                    <span style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px;">نسبة الغياب المضافة لليوم %:</span>
+                    <input type="number" id="subjectDayAbsencePercent" class="input-field" placeholder="مثال: 5" value="5" style="margin:0; padding: 10px;">
+                </div>
+
+                <input type="text" id="subjectDriveUrl" placeholder="رابط المصادر (اختياري)">
+                <select id="subjectBadgeClass">
+                    <option value="lec">محاضرة</option>
+                    <option value="lab">معمل</option>
+                    <option value="tut">سيكشن</option>
+                    <option value="online">أخرى</option>
+                </select>
+                <input type="text" id="subjectBadgeText" placeholder="نص الشارة">
+                <button class="btn btn-small" onclick="addSubjectToSchedule()">إضافة المادة</button>
+            </div>
+        </div>
+
+        <!-- تعديل وحذف الجداول -->
+        <div class="admin-panel">
+            <h3>✏️ تعديل وحذف الجداول الحالية</h3>
+            <div class="admin-controls">
+                <select id="editScheduleSelect" onchange="renderScheduleEditor()"></select>
+                <button class="btn btn-small btn-warning" onclick="renameSchedule()">تغيير الاسم</button>
+                <button class="btn btn-small btn-danger" onclick="deleteEntireSchedule()">حذف الجدول</button>
+            </div>
+            <div id="scheduleEditorContent" style="margin-top: 15px; overflow-x: auto;"></div>
+        </div>
+
+        <!-- إدارة الطلاب والبحث -->
+        <div class="admin-panel">
+            <h3>👥 إدارة الطلاب والبحث السريع بالـ ID</h3>
+            <div class="admin-controls">
+                <input type="text" id="newStudentName" placeholder="اسم الطالب">
+                <input type="text" id="newStudentId" placeholder="الـ ID">
+                <input type="password" id="newStudentPass" placeholder="كلمة المرور">
+                <select id="newStudentSchedule"></select>
+                <button class="btn btn-small" onclick="addUser()">إضافة الطالب</button>
+            </div>
+            
+            <div class="admin-controls" style="margin-top: 15px;">
+                <input type="text" id="searchStudentIdInput" placeholder="🔍 ابحث برقم الـ ID للطالب..." oninput="renderUsersTable()" style="max-width: 320px;">
+            </div>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>الـ ID</th>
+                        <th>الاسم</th>
+                        <th>الباسورد</th>
+                        <th>الجدول</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="usersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل بيانات الطالب -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary); margin-top:0;">تعديل بيانات الطالب</h3>
+            <input type="hidden" id="editOriginalId">
+            <input type="text" id="editStudentName" class="input-field" placeholder="الاسم">
+            <input type="text" id="editStudentId" class="input-field" placeholder="الـ ID الجديد">
+            <input type="text" id="editStudentPass" class="input-field" placeholder="الباسورد الجديد">
+            <select id="editStudentSchedule" class="input-field"></select>
+            
+            <div style="display: flex; gap: 10px; margin-top: 18px;">
+                <button class="btn" onclick="saveUserEdit()">حفظ التعديلات</button>
+                <button class="btn btn-danger" onclick="closeModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- شاشة الطالب -->
+    <div id="studentScreen" class="screen">
+        <button class="btn logout-btn student-logout" onclick="logout()">تسجيل خروج 🚪</button>
+        
+        <div id="studentQuickLinks" class="quick-links-bar"></div>
+
+        <div class="top-tools-bar" id="studentTopTools">
+            <button class="btn-small btn-success" onclick="enableNotifications()">🔔 تفعيل الإشعارات</button>
+            <button class="btn-small btn-warning" onclick="toggleDarkMode()">🌓 تبديل المود (Dark/Light)</button>
+            <button class="btn-small" onclick="openAdminChat()">👨‍💼 مراسلة المدير</button>
+        </div>
+
+        <div class="student-view-section active" id="studentScheduleSection">
+            <div class="schedule-container view-day" id="mainContainer"></div>
+        </div>
+
+        <div class="student-view-section" id="studentProfileSection">
+            <div class="profile-container">
+                <div class="profile-card-header">
+                    <div class="profile-avatar" id="profileAvatarDisplay" onclick="document.getElementById('avatarFileInput').click()" title="اضغط لرفع صورة شخصية">
+                        👨‍🎓
+                    </div>
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="uploadStudentAvatar(event)">
+                    
+                    <div class="profile-name" id="profileNameDisplay">اسم الطالب</div>
+                    <div class="profile-id" id="profileIdDisplay">ID: 000000</div>
+                    
+                    <div class="profile-stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="statTotalSubjects">0</div>
+                            <div class="stat-label">إجمالي المواد</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statActiveDays">0</div>
+                            <div class="stat-label">أيام الدراسة</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="statScheduleName">جدول</div>
+                            <div class="stat-label">نوع الجدول</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="profile-section-title">📊 سجل الحضور ونسب الغياب التراكمية لكل مادة</h3>
+                    <div id="studentAttendanceSummary" style="margin-top: 15px;"></div>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="profile-section-title">🎓 حاسبة التقدير التراكمي (GPA Calculator)</h3>
+                    <div class="admin-controls" style="margin-top: 15px; margin-bottom: 0;">
+                        <input type="number" id="gpaHoursInput" placeholder="عدد الساعات المكتسبة">
+                        <input type="number" id="gpaScoreInput" step="0.01" placeholder="الـ GPA الحالي (مثال 3.4)">
+                        <button class="btn btn-small" onclick="calculateGPA()">حساب وتحديث</button>
+                    </div>
+                    <p id="gpaResultDisplay" style="color: var(--primary); margin-top: 10px; font-weight: bold; text-align: center;"></p>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="profile-section-title">🔐 الأمان وتغيير كلمة المرور</h3>
+                    <div class="admin-controls" style="margin-top: 15px; margin-bottom: 0;">
+                        <input type="password" id="studentNewPassInput" placeholder="أدخل كلمة المرور الجديدة">
+                        <button class="btn btn-small" onclick="updateStudentPassword()">تحديث كلمة المرور</button>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="profile-section-title">📝 منظم الملاحظات والمهام الشخصية</h3>
+                    <div class="todo-input-row">
+                        <input type="text" id="todoInputText" class="input-field" placeholder="أضف مهمة دراسية جديدة..." style="margin:0;">
+                        <button class="btn btn-small" onclick="addStudentTodo()" style="width: 100px;">إضافة</button>
+                    </div>
+                    <div class="list-container" id="studentTodoListContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-view-section" id="studentFriendsSection">
+            <div class="profile-container">
+                <div class="profile-section">
+                    <h3 class="profile-section-title">📩 إرسال طلب صداقة جديدة</h3>
+                    <div class="friend-input-row">
+                        <input type="text" id="friendIdInput" class="input-field" placeholder="أدخل الـ ID الخاص بالصديق" style="margin:0;">
+                        <button class="btn btn-small" onclick="sendFriendRequest()" style="width: 120px;">إرسال طلب</button>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="profile-section-title" style="color: var(--hum-color);">⏳ طلبات الصداقة الواردة</h3>
+                    <div class="list-container" id="friendRequestsContainer"></div>
+                </div>
+
+                <div class="profile-section">
+                    <h3 class="profile-section-title">👥 قائمة الأصدقاء المقبولين</h3>
+                    <div class="list-container" id="friendsListContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="student-view-section" id="studentGroupsSection">
+            <div class="profile-container">
+                <div class="profile-section">
+                    <h3 class="profile-section-title">🚀 مجموعات المشاريع وتوزيع الأدوار (Turns & Roles)</h3>
+                    <div class="group-input-row">
+                        <input type="text" id="groupNameInput" class="input-field" placeholder="اسم المجموعة (مثل: مشروع التخرج)" style="margin:0;">
+                        <button class="btn btn-small" onclick="createProjectGroup()" style="width: 130px;">إنشاء مجموعة</button>
+                    </div>
+                    <div class="list-container" id="groupsListContainer" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav" id="bottomNav">
+            <div class="view-toggles">
+                <button class="view-btn active" id="btnScheduleTab">📅 الجدول</button>
+                <button class="view-btn" id="btnProfileTab">👤 البروفايل</button>
+                <button class="view-btn" id="btnFriendsTab">👥 الأصدقاء</button>
+                <button class="view-btn" id="btnGroupsTab">🚀 المجموعات</button>
+            </div>
+            <div class="view-toggles" id="scheduleSubToggles" style="margin-top: 3px;">
+                <button class="view-btn active" id="btnDayView" style="padding: 4px 12px; font-size: 0.75rem;">عرض يومي</button>
+                <button class="view-btn" id="btnWeekView" style="padding: 4px 12px; font-size: 0.75rem;">عرض أسبوعي</button>
+            </div>
+            <div class="day-tabs" id="dayTabsContainer" style="margin-top: 3px;">
+                <button class="tab-btn" data-index="0">الأحد</button>
+                <button class="tab-btn active" data-index="1">الإثنين</button>
+                <button class="tab-btn" data-index="2">الثلاثاء</button>
+                <button class="tab-btn" data-index="3">الأربعاء</button>
+                <button class="tab-btn" data-index="4">الخميس</button>
+            </div>
+        </div>
+
+        <!-- الشات بوت التفاعلي -->
+        <button class="chatbot-toggle-btn" onclick="toggleChatbot()">🤖</button>
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <span>المساعد الذكي والردود الإدارية 🤖</span>
+                <button class="chatbot-close-btn" onclick="toggleChatbot()">✖</button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="chat-msg bot">
+                    أهلاً بك! اختر من الخيارات أدناه أو راسل المدير مباشرة 📋
+                    <div class="chat-options-bar">
+                        <button class="chat-option-pill" onclick="handleBotOption('جدول النهاردة')">📅 جدول النهاردة</button>
+                        <button class="chat-option-pill" onclick="handleBotOption('التحدث مع المدير')">👨‍💼 التحدث مع المدير</button>
+                        <button class="chat-option-pill" onclick="handleBotOption('روابط المنصة')">🔗 روابط المنصة</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="اكتب سؤالك أو رسالتك للمدير..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+                <button class="chatbot-send-btn" onclick="sendChatMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mapModal" class="modal"><div class="modal-content" style="text-align:center">
+        <h3 style="color:var(--primary);margin-top:0">🗺️ خريطة الجامعة</h3>
+        <p style="font-size:1.3rem;margin:24px 0">🚧 تحت التطوير</p>
+        <p style="font-size:.85rem;opacity:.7">هتتضاف قريباً إن شاء الله.</p>
+        <button class="btn" onclick="document.getElementById('mapModal').classList.remove('active')">تمام</button>
+    </div></div>
+
+    <div id="chatModal" class="modal"><div class="modal-content chat-box">
+        <div class="chat-head"><strong id="chatTitle"></strong><button class="chatbot-close-btn" onclick="closeChat()">✖</button></div>
+        <div id="chatMsgs" class="chat-msgs"></div>
+        <div class="chat-compose">
+            <label class="cbtn" title="صورة">🖼️<input type="file" accept="image/*" multiple hidden onchange="onChatFilePicked(event,'image')"></label>
+            <label class="cbtn" title="ملف">📎<input type="file" multiple hidden onchange="onChatFilePicked(event,'auto')"></label>
+            <button class="cbtn" id="chatRecBtn" onclick="toggleRecording()" title="رسالة صوتية">🎤</button>
+            <input id="chatText" class="input-field" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendChatText()">
+            <button class="btn-small" onclick="sendChatText()">➤</button>
+        </div>
+    </div></div>
+
+    <script>
+    /* ================= حفظ مشترك أونلاين (Firebase Realtime Database) ================= */
+    const FB_CONFIG = {
+        url: 'https://model-dabe1-default-rtdb.firebaseio.com'
+    };
+
+    const GHSync = (() => {
+        const STR_KEYS = ['users', 'schedules', 'subjectOptionsList', 'appCircles', 'groups', 'chatReads'];
+        const lsSet = Storage.prototype.setItem;
+        const lsRemove = Storage.prototype.removeItem;
+        const dirty = new Set();          // مفاتيح عامة اتعدلت ولسه ما اترفعتش
+        const pending = new Map();        // "chatId/msgId" -> رسالة أو null(حذف) ولسه ما اترفعتش
+        let remote = {}, timer = null, pushing = false, applying = false, gotFirst = false, missing = [];
+
+        const base = () => (FB_CONFIG.url || localStorage.getItem('fb_url') || '').trim().replace(/\/+$/, '');
+        const endpoint = () => base() + '/appdata.json';
+        const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+        const canon = v => JSON.stringify(v, (k, x) => isObj(x) ? Object.keys(x).sort().reduce((o, kk) => (o[kk] = x[kk], o), {}) : x);
+        const parseLocal = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+
+        /* ---- مؤشر الحالة (فوق يمين) ---- */
+        let pill;
+        function status(txt, bad) {
+            if (!pill) {
+                pill = document.createElement('div');
+                pill.style.cssText = 'position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:99999;padding:3px 10px;border-radius:20px;font:11px Tahoma,Arial;background:#222;color:#fff;opacity:.85;cursor:pointer';
+                pill.onclick = () => {
+                    const u = prompt('الصق رابط قاعدة بيانات Firebase:', base());
+                    if (u !== null) { lsSet.call(localStorage, 'fb_url', u.trim()); location.reload(); }
+                };
+                (document.body || document.documentElement).appendChild(pill);
+            }
+            pill.textContent = txt;
+            pill.style.background = bad ? '#b3261e' : '#222';
+        }
+
+        /* ---- نسخة محلية من البيانات البعيدة ---- */
+        function setPath(parts, data) {
+            if (!parts.length) { remote = isObj(data) ? data : {}; return; }
+            let o = remote;
+            for (let i = 0; i < parts.length - 1; i++) { if (!isObj(o[parts[i]])) o[parts[i]] = {}; o = o[parts[i]]; }
+            const last = parts[parts.length - 1];
+            if (data === null || data === undefined) delete o[last]; else o[last] = data;
+        }
+
+        /* ---- الشات: كل رسالة تتحفظ لوحدها (عشان رسائل الطلبة ما تمسحش بعض) ---- */
+        function effective() {
+            const eff = {}, rm = isObj(remote.chatmsgs) ? remote.chatmsgs : {};
+            Object.keys(rm).forEach(c => { if (isObj(rm[c])) eff[c] = { ...rm[c] }; });
+            pending.forEach((v, path) => {
+                const i = path.indexOf('/'), c = path.slice(0, i), id = path.slice(i + 1);
+                if (v === null) { if (eff[c]) delete eff[c][id]; } else (eff[c] = eff[c] || {})[id] = v;
+            });
+            return eff;
+        }
+        function diffChats() {
+            const local = parseLocal('chats', {}), eff = effective(); let n = 0;
+            Object.keys(local).forEach(c => (Array.isArray(local[c]) ? local[c] : []).forEach(m => {
+                if (!m || !m.id) return;
+                const old = eff[c] && eff[c][m.id];
+                if (!old || canon(old) !== canon(m)) { pending.set(c + '/' + m.id, m); n++; }
+            }));
+            Object.keys(eff).forEach(c => Object.keys(eff[c]).forEach(id => {
+                const arr = Array.isArray(local[c]) ? local[c] : [];
+                if (!arr.some(m => m && m.id === id)) { pending.set(c + '/' + id, null); n++; }
+            }));
+            if (n) schedule();
+        }
+        function rebuildChats(notify) {
+            const eff = effective(), out = {};
+            Object.keys(eff).sort().forEach(c => {
+                const arr = Object.values(eff[c]).filter(m => m && m.id)
+                    .sort((a, b) => (a.ts || 0) - (b.ts || 0) || (a.id < b.id ? -1 : 1));
+                if (arr.length) out[c] = arr;
+            });
+            if (canon(parseLocal('chats', {})) === canon(out)) return;
+            applying = true; lsSet.call(localStorage, 'chats', JSON.stringify(out)); applying = false;
+            if (notify) window.dispatchEvent(new StorageEvent('storage', { key: 'chats' }));
+        }
+
+        /* ---- باقي البيانات (مفتاح كامل) ---- */
+        function applyKey(k, str) {
+            if (dirty.has(k) || typeof str !== 'string' || localStorage.getItem(k) === str) return false;
+            applying = true; lsSet.call(localStorage, k, str); applying = false;
+            return true;
+        }
+        function processRemote(first) {
+            STR_KEYS.forEach(k => {
+                if (applyKey(k, remote[k]) && !first) window.dispatchEvent(new StorageEvent('storage', { key: k }));
+            });
+            if (isObj(remote.chatmsgs) || !first) rebuildChats(!first);
+        }
+
+        /* ---- الحفظ ---- */
+        async function push() {
+            if (pushing || !base() || (!dirty.size && !pending.size)) return;
+            pushing = true; status('⏳ جاري الحفظ...');
+            const body = {};
+            const sentStr = [...dirty];
+            sentStr.forEach(k => { const v = localStorage.getItem(k); if (v !== null) body[k] = v; });
+            const sentPend = [...pending.entries()];
+            sentPend.forEach(([p, v]) => { body['chatmsgs/' + p] = v; });
+            try {
+                const r = await fetch(endpoint(), { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                sentStr.forEach(k => { if (localStorage.getItem(k) === body[k]) dirty.delete(k); });
+                sentPend.forEach(([p, v]) => { if (pending.get(p) === v) pending.delete(p); });
+                status('☁️ تم الحفظ');
+            } catch (e) {
+                console.error('save failed', e);
+                status('⚠️ فشل الحفظ (' + e.message + ')', true);
+                setTimeout(push, 10000);
+            }
+            pushing = false;
+            if (dirty.size || pending.size) schedule();
+        }
+        function schedule() { clearTimeout(timer); timer = setTimeout(push, 600); }
+
+        Storage.prototype.setItem = function (k, v) {
+            lsSet.call(this, k, v);
+            if (this === localStorage && !applying) {
+                if (k === 'chats') diffChats();
+                else if (STR_KEYS.includes(k)) { dirty.add(k); schedule(); }
+            }
+        };
+        Storage.prototype.removeItem = function (k) {
+            lsRemove.call(this, k);
+            if (this === localStorage && !applying) {
+                if (k === 'chats') diffChats();
+                else if (STR_KEYS.includes(k)) { dirty.add(k); schedule(); }
+            }
+        };
+
+        /* ---- الصور والفويسات والملفات: بتترفع لقاعدة البيانات عشان توصل للكل ---- */
+        const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+        async function uploadMedia(id, blob, name) {
+            if (!base()) throw new Error('no db');
+            const d = await blobToDataURL(blob);
+            const r = await fetch(base() + '/media/' + id + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ d, n: name || '', t: blob.type || '' }) });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+        }
+        async function downloadMedia(id) {
+            if (!base()) return null;
+            const r = await fetch(base() + '/media/' + id + '.json');
+            if (!r.ok) return null;
+            const j = await r.json();
+            if (!j || !j.d) return null;
+            return await (await fetch(j.d)).blob();
+        }
+
+        /* ---- الاتصال اللحظي ---- */
+        const ready = new Promise(resolve => {
+            if (!base()) { status('⚠️ مفيش رابط قاعدة بيانات (اضغط هنا)', true); resolve(); return; }
+            const es = new EventSource(endpoint());
+            const done = setTimeout(resolve, 6000);
+            const parts = p => String(p || '/').split('/').filter(Boolean);
+            es.addEventListener('put', ev => {
+                let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+                const pp = parts(m.path), isFirst = !gotFirst && pp.length === 0;
+                setPath(pp, m.data);
+                if (isFirst) {
+                    gotFirst = true;
+                    missing = STR_KEYS.filter(k => typeof remote[k] !== 'string');
+                    processRemote(true);
+                    clearTimeout(done); resolve();
+                } else processRemote(false);
+                if (!dirty.size && !pending.size && !pushing) status('☁️ متصل');
+            });
+            es.addEventListener('patch', ev => {
+                let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+                const pp = parts(m.path);
+                Object.entries(m.data || {}).forEach(([k, v]) => setPath(pp.concat(k.split('/').filter(Boolean)), v));
+                processRemote(false);
+            });
+            es.onerror = () => status('⚠️ الاتصال قطع - بيحاول يرجع', true);
+        });
+
+        window.addEventListener('beforeunload', e => { if (dirty.size || pending.size || pushing) { e.preventDefault(); e.returnValue = ''; } });
+
+        return {
+            ready, status, uploadMedia, downloadMedia, base,
+            afterInit() {
+                missing.forEach(k => { if (localStorage.getItem(k) !== null) dirty.add(k); });
+                diffChats();
+                if (dirty.size || pending.size) schedule();
+            }
+        };
+    })();
+    </script>
+
+    <script>
+        let currentLoggedInUser = null;
+
+        /* ===== نظام الـ 12 ساعة ===== */
+        function to12h(str) {
+            return String(str == null ? '' : str).replace(/(\d{1,2}):(\d{2})(?!\s*(?:[ap]\.?m|ص|م))/gi, (m, h, mi) => {
+                h = +h; return `${h % 12 || 12}:${mi} ${h >= 12 ? 'م' : 'ص'}`;
+            });
+        }
+        function normTime(str) {      // أي صيغة (12 أو 24 ساعة) -> "HH:MM - HH:MM"
+            const re = /(\d{1,2})\s*[:.]\s*(\d{2})\s*(a\.?m\.?|p\.?m\.?|ص|م)?/gi, found = []; let m;
+            while ((m = re.exec(str)) && found.length < 2) {
+                let h = +m[1]; const mer = (m[3] || '').toLowerCase();
+                if (mer) { const pm = /^p|م/.test(mer); if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
+                found.push(String(h).padStart(2, '0') + ':' + m[2]);
+            }
+            return found.length === 2 ? found.join(' - ') : (found[0] || String(str).trim());
+        }
+        function fmtNow12() { const d = new Date(), h = d.getHours(); return `${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')} ${h >= 12 ? 'م' : 'ص'}`; }
+        let isChattingWithAdmin = false;
+
+        function initDatabase() {
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const adminExists = users.find(u => u.role === 'admin');
+            if (!adminExists) {
+                users.push({ id: '260100839', pass: '123', role: 'admin', name: 'مهاب (المدير)', schedule: 'admin', adminMessages: [], avatar: '' });
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+
+            if (!localStorage.getItem('subjectOptionsList')) {
+                let defaultSubjects = [
+                    "English Explorer", "Artificial Intelligence", "Web Development", "Database Systems", "Software Engineering",
+                    "Computer Architecture", "Operating Systems", "Cyber Security", "Data Structures", "Algorithms",
+                    "Networks", "UI/UX Design", "Mobile App Dev", "Cloud Computing", "Machine Learning",
+                    "DevOps", "Software Testing", "Project Management", "Digital Logic", "Discrete Math"
+                ];
+                for(let i = 1; i <= 20; i++) {
+                    defaultSubjects.push(`مادة احتياطية ${i}`);
+                }
+                localStorage.setItem('subjectOptionsList', JSON.stringify(defaultSubjects));
+            }
+
+            let schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            if (schedules.length === 0) {
+                schedules.push({
+                    id: 'default_sch',
+                    name: 'الجدول الأساسي',
+                    days: {
+                        0: [{ id: 'sub_1', time: "09:00 - 16:00", subject: "gaming room🎮", details: "R018", color: "ept", badgeClass: "online", badgeText: "free day", driveUrl: "", absencePercent: 5, maxAbsence: 25 }],
+                        1: [{ id: 'sub_2', time: "09:00 - 10:40", subject: "English Explorer", details: "CEC001 | Hall A231", color: "cec", badgeClass: "lec", badgeText: "Lecture", driveUrl: "https://drive.google.com", absencePercent: 5, maxAbsence: 15 }],
+                        2: [], 3: [], 4: []
+                    }
+                });
+                localStorage.setItem('schedules', JSON.stringify(schedules));
+            }
+
+            if (!localStorage.getItem('appCircles')) {
+                const defaultCircles = [
+                    { name: "SIS", url: "https://sis.example.com", enabled: true },
+                    { name: "MLS", url: "https://mls.example.com", enabled: true },
+                    { name: "SRV", url: "https://serves.example.com", enabled: true }
+                ];
+                localStorage.setItem('appCircles', JSON.stringify(defaultCircles));
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme_mode', isLight ? 'light' : 'dark');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('theme_mode') === 'light') {
+                document.body.classList.add('light-mode');
+            }
+        });
+
+        function renderSubjectOptionsAdmin() {
+            const list = JSON.parse(localStorage.getItem('subjectOptionsList')) || [];
+            const container = document.getElementById('subjectsOptionsList');
+            const selectEl = document.getElementById('subjectSelectOption');
+            const globalAbsSelect = document.getElementById('globalAbsenceSubjectSelect');
+            
+            container.innerHTML = '';
+            selectEl.innerHTML = '';
+            if(globalAbsSelect) globalAbsSelect.innerHTML = '';
+
+            list.forEach((sub, idx) => {
+                container.innerHTML += `<span style="background:var(--card-bg); border:1px solid var(--card-border); padding:6px 12px; border-radius:8px; font-size:0.85rem;">${sub} <button onclick="deleteSubjectOption(${idx})" style="background:none; border:none; color:var(--gen-color); cursor:pointer; font-weight:bold; margin-right:6px;">×</button></span>`;
+                selectEl.innerHTML += `<option value="${sub}">${sub}</option>`;
+                if(globalAbsSelect) globalAbsSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+            });
+        }
+
+        function addNewSubjectOption() {
+            const input = document.getElementById('newSubjectOptionInput');
+            const val = input.value.trim();
+            if(!val) return alert('أدخل اسم المادة أولاً!');
+
+            let list = JSON.parse(localStorage.getItem('subjectOptionsList')) || [];
+            if(list.includes(val)) return alert('هذه المادة موجودة بالفعل في القائمة!');
+
+            list.push(val);
+            localStorage.setItem('subjectOptionsList', JSON.stringify(list));
+            input.value = '';
+            renderSubjectOptionsAdmin();
+            alert('تم إضافة المادة للقائمة بنجاح!');
+        }
+
+        function deleteSubjectOption(index) {
+            let list = JSON.parse(localStorage.getItem('subjectOptionsList')) || [];
+            list.splice(index, 1);
+            localStorage.setItem('subjectOptionsList', JSON.stringify(list));
+            renderSubjectOptionsAdmin();
+        }
+
+        function renderCirclesAdmin() {
+            const circles = JSON.parse(localStorage.getItem('appCircles')) || [];
+            const container = document.getElementById('circlesAdminContainer');
+            container.innerHTML = '';
+
+            circles.forEach((circle, index) => {
+                container.innerHTML += `
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid var(--card-border);">
+                        <span style="font-weight: bold; min-width: 75px; color: var(--primary);">الدائرة ${index + 1}:</span>
+                        <input type="text" id="circleText_${index}" value="${circle.name}" placeholder="3 حروف" maxlength="5" style="padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-color); width: 100px;">
+                        <input type="text" id="circleUrl_${index}" value="${circle.url}" placeholder="الرابط (URL)" style="padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-color); flex: 1; min-width: 200px;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; color: var(--text-color);">
+                            <input type="checkbox" id="circleEnabled_${index}" ${circle.enabled ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                            إظهار عند الطالب
+                        </label>
+                    </div>
+                `;
+            });
+        }
+
+        function saveCirclesSettings() {
+            let circles = [];
+            for (let i = 0; i < 3; i++) {
+                const name = document.getElementById(`circleText_${i}`).value.trim() || `C${i+1}`;
+                const url = document.getElementById(`circleUrl_${i}`).value.trim() || '#';
+                const enabled = document.getElementById(`circleEnabled_${i}`).checked;
+                circles.push({ name, url, enabled });
+            }
+            localStorage.setItem('appCircles', JSON.stringify(circles));
+            alert('تم حفظ إعدادات الدوائر والروابط بنجاح!');
+        }
+
+        function updateScheduleDropdowns() {
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const targetSelect = document.getElementById('targetScheduleId');
+            const studentSelect = document.getElementById('newStudentSchedule');
+            const editSelect = document.getElementById('editStudentSchedule');
+            const editorSelect = document.getElementById('editScheduleSelect');
+            
+            let options = '';
+            schedules.forEach(sch => { options += `<option value="${sch.id}">${sch.name}</option>`; });
+            
+            targetSelect.innerHTML = options;
+            studentSelect.innerHTML = options;
+            editSelect.innerHTML = options;
+            editorSelect.innerHTML = options;
+
+            renderScheduleEditor();
+            renderSubjectOptionsAdmin();
+        }
+
+        function updateGlobalSubjectAbsence() {
+            const subjectName = document.getElementById('globalAbsenceSubjectSelect').value;
+            const newRate = document.getElementById('globalNewAbsenceInput').value.trim();
+
+            if(!subjectName || !newRate) return alert('برجاء اختيار المادة وإدخال نسبة الغياب الجديدة!');
+
+            let schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            let updatedCount = 0;
+
+            schedules.forEach(sch => {
+                for(let d = 0; d <= 4; d++) {
+                    let cards = sch.days[d] || [];
+                    cards.forEach(c => {
+                        if(c.subject === subjectName) {
+                            c.maxAbsence = Number(newRate);
+                            updatedCount++;
+                        }
+                    });
+                }
+            });
+
+            localStorage.setItem('schedules', JSON.stringify(schedules));
+            alert(`✨ تم تحديث نسبة الغياب المسموحة للمادة (${subjectName}) إلى ${newRate}% وتحديثها عند الكل بنجاح!`);
+            document.getElementById('globalNewAbsenceInput').value = '';
+            renderScheduleEditor();
+        }
+
+        function createNewSchedule() {
+            const name = document.getElementById('newScheduleName').value.trim();
+            if (!name) return alert('برجاء كتابة اسم الجدول!');
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            schedules.push({ id: 'sch_' + Date.now(), name: name, days: { 0: [], 1: [], 2: [], 3: [], 4: [] } });
+            localStorage.setItem('schedules', JSON.stringify(schedules));
+            document.getElementById('newScheduleName').value = '';
+            updateScheduleDropdowns();
+            alert('تم إنشاء الجدول بنجاح!');
+        }
+
+        function getAutoColorForSubject(subjectName) {
+            const colors = ['cec', 'cet', 'gen', 'ept', 'hum'];
+            let hash = 0;
+            for (let i = 0; i < subjectName.length; i++) {
+                hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function addSubjectToSchedule() {
+            const scheduleId = document.getElementById('targetScheduleId').value;
+            const dayIndex = document.getElementById('subjectDay').value;
+            const subject = document.getElementById('subjectSelectOption').value;
+            const timeFrom = document.getElementById('timeFrom').value;
+            const timeTo = document.getElementById('timeTo').value;
+            const absencePercent = document.getElementById('subjectDayAbsencePercent').value.trim() || 5;
+            const driveUrl = document.getElementById('subjectDriveUrl').value.trim();
+            
+            if (!scheduleId || !subject || !timeFrom || !timeTo) return alert('برجاء إكمال بيانات المادة واختيار وقت البداية والنهاية بدقة!');
+            
+            const timeFormatted = `${timeFrom} - ${timeTo}`;
+            const autoColor = getAutoColorForSubject(subject);
+
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const schIndex = schedules.findIndex(s => s.id === scheduleId);
+            
+            if (schIndex > -1) {
+                schedules[schIndex].days[dayIndex].push({
+                    id: 'sub_' + Date.now() + Math.random(),
+                    time: timeFormatted, 
+                    subject,
+                    details: document.getElementById('subjectDetails').value.trim(),
+                    absencePercent: Number(absencePercent),
+                    maxAbsence: 25,
+                    driveUrl: driveUrl,
+                    color: autoColor,
+                    badgeClass: document.getElementById('subjectBadgeClass').value,
+                    badgeText: document.getElementById('subjectBadgeText').value.trim() || 'مادة'
+                });
+                localStorage.setItem('schedules', JSON.stringify(schedules));
+                alert('تم إضافة المحاضرة بنجاح وتحديد نسبة غياب اليوم بنجاح! 🎯');
+                document.getElementById('timeFrom').value = '';
+                document.getElementById('timeTo').value = '';
+                document.getElementById('subjectDetails').value = '';
+                document.getElementById('subjectDayAbsencePercent').value = '5';
+                document.getElementById('subjectDriveUrl').value = '';
+                updateScheduleDropdowns();
+            }
+        }
+
+        function renderScheduleEditor() {
+            const scheduleId = document.getElementById('editScheduleSelect').value;
+            if(!scheduleId) return;
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const schedule = schedules.find(s => s.id === scheduleId);
+            const container = document.getElementById('scheduleEditorContent');
+            
+            if(!schedule) { container.innerHTML = ''; return; }
+
+            const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+            let html = `<table><tr><th>اليوم</th><th>المادة</th><th>الوقت</th><th>نسبة الغياب المضافة</th><th>إجراء</th></tr>`;
+            let hasSubjects = false;
+
+            for (let i = 0; i <= 4; i++) {
+                const dayCards = schedule.days[i] || [];
+                dayCards.forEach((card, index) => {
+                    hasSubjects = true;
+                    html += `<tr>
+                        <td>${dayNames[i]}</td>
+                        <td>${esc(card.subject)}</td>
+                        <td dir="rtl" style="text-align: right;">${to12h(card.time)}</td>
+                        <td>${card.absencePercent || 5}%</td>
+                        <td>
+                            <button class="btn-small" onclick="editSingleSubject('${schedule.id}', ${i}, ${index})">تعديل</button>
+                            <button class="btn-small btn-danger" onclick="deleteSubjectFromSchedule('${schedule.id}', ${i}, ${index})">حذف</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            html += `</table>`;
+
+            if(!hasSubjects) {
+                html = `<p class="empty-msg">لا يوجد مواد في هذا الجدول حالياً.</p>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function editSingleSubject(scheduleId, dayIdx, cardIdx) {
+            let schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const sch = schedules.find(s => s.id === scheduleId);
+            if(!sch) return;
+            const card = sch.days[dayIdx][cardIdx];
+
+            const newTime = prompt('تعديل الوقت (مثال: 9:00 ص - 10:40 ص):', to12h(card.time));
+            if(newTime === null) return;
+            const newAbsencePercent = prompt('تعديل نسبة غياب هذا اليوم (%):', card.absencePercent || 5);
+            if(newAbsencePercent === null) return;
+
+            card.time = normTime(newTime) || card.time;
+            card.absencePercent = Number(newAbsencePercent) || card.absencePercent;
+
+            localStorage.setItem('schedules', JSON.stringify(schedules));
+            renderScheduleEditor();
+            alert('تم تحديث المحاضرة بنجاح!');
+        }
+
+        function deleteSubjectFromSchedule(scheduleId, dayIndex, subjectIndex) {
+            if(confirm('هل أنت متأكد من حذف هذه المادة من الجدول؟')) {
+                const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+                const schIndex = schedules.findIndex(s => s.id === scheduleId);
+                if (schIndex > -1) {
+                    schedules[schIndex].days[dayIndex].splice(subjectIndex, 1);
+                    localStorage.setItem('schedules', JSON.stringify(schedules));
+                    updateScheduleDropdowns();
+                }
+            }
+        }
+
+        function renameSchedule() {
+            const scheduleId = document.getElementById('editScheduleSelect').value;
+            if(!scheduleId) return;
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const schIndex = schedules.findIndex(s => s.id === scheduleId);
+            
+            if(schIndex > -1) {
+                const newName = prompt('أدخل الاسم الجديد للجدول:', schedules[schIndex].name);
+                if(newName && newName.trim() !== '') {
+                    schedules[schIndex].name = newName.trim();
+                    localStorage.setItem('schedules', JSON.stringify(schedules));
+                    updateScheduleDropdowns();
+                    renderUsersTable();
+                }
+            }
+        }
+
+        function deleteEntireSchedule() {
+            const scheduleId = document.getElementById('editScheduleSelect').value;
+            if(!scheduleId) return;
+            
+            let schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            if(schedules.length <= 1) return alert('لا يمكنك حذف هذا الجدول لأنه الجدول الوحيد المتبقي في النظام!');
+
+            if(confirm('هل أنت متأكد من حذف هذا الجدول بالكامل؟')) {
+                schedules = schedules.filter(s => s.id !== scheduleId);
+                localStorage.setItem('schedules', JSON.stringify(schedules));
+                updateScheduleDropdowns();
+                renderUsersTable();
+                alert('تم حذف الجدول بنجاح!');
+            }
+        }
+
+        /* ================= تحليل صورة الجدول (قراءة حقيقية بـ OCR) ================= */
+        const SCH_PREFIXES = ['CEC', 'CET', 'GEN', 'EPT', 'HUM'];
+
+        function loadScriptOnce(src) {
+            return new Promise((res, rej) => {
+                const s = document.createElement('script');
+                s.src = src; s.onload = res;
+                s.onerror = () => rej(new Error('تعذر تحميل مكتبة القراءة، اتأكد من الإنترنت'));
+                document.head.appendChild(s);
+            });
+        }
+        function fileToCanvas(file, maxSide) {
+            return new Promise((res, rej) => {
+                const url = URL.createObjectURL(file), img = new Image();
+                img.onload = () => {
+                    const sc = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                    const c = document.createElement('canvas');
+                    c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
+                    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+                    x.drawImage(img, 0, 0, c.width, c.height);
+                    URL.revokeObjectURL(url); res(c);
+                };
+                img.onerror = () => rej(new Error('مش قادر أفتح الصورة'));
+                img.src = url;
+            });
+        }
+
+        /* إيجاد خطوط الجدول (أعمدة وصفوف) من الصورة */
+        function detectGrid(canvas) {
+            const w = canvas.width, h = canvas.height;
+            const d = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+            const g = new Uint8Array(w * h);
+            for (let i = 0; i < w * h; i++) g[i] = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000;
+            const K = 4;
+            const vPix = (x, y) => { if (x < K || x >= w - K) return false; const v = g[y * w + x]; return v < 230 && g[y * w + x - K] - v >= 20 && g[y * w + x + K] - v >= 20; };
+            const hPix = (x, y) => { if (y < K || y >= h - K) return false; const v = g[y * w + x]; return v < 230 && g[(y - K) * w + x] - v >= 20 && g[(y + K) * w + x] - v >= 20; };
+            const longestRun = (from, to, test) => {
+                let best = null, s = -1, last = -1;
+                for (let i = from; i <= to; i++) {
+                    if (test(i)) { if (s < 0) s = i; last = i; }
+                    else if (s >= 0 && i - last > 2) { if (!best || last - s > best[1] - best[0]) best = [s, last]; s = -1; }
+                }
+                if (s >= 0 && (!best || last - s > best[1] - best[0])) best = [s, last];
+                return best;
+            };
+            // خطوط رأسية طويلة
+            const minV = Math.max(120, h * 0.08), cands = [];
+            for (let x = K; x < w - K; x++) {
+                const r = longestRun(0, h - 1, y => vPix(x, y));
+                if (r && r[1] - r[0] >= minV) cands.push({ x, y0: r[0], y1: r[1] });
+            }
+            const vlines = [];
+            cands.forEach(c => {
+                const L = vlines[vlines.length - 1];
+                if (L && c.x - L.xe <= 2) { L.xe = c.x; L.y0 = Math.min(L.y0, c.y0); L.y1 = Math.max(L.y1, c.y1); L.xs.push(c.x); }
+                else vlines.push({ xe: c.x, xs: [c.x], y0: c.y0, y1: c.y1 });
+            });
+            vlines.forEach(L => L.x = Math.round(L.xs.reduce((a, b) => a + b, 0) / L.xs.length));
+            // نحدد نافذة الجدول: أكتر نافذة رأسية بتغطيها خطوط كتير (وأضيق واحدة لو اتساوت)
+            let bestGroup = [], bestWin = null;
+            vlines.forEach(a => {
+                const grp = vlines.filter(b => b.y0 <= a.y0 + 14 && b.y1 >= a.y1 - 14);
+                if (grp.length > bestGroup.length || (grp.length === bestGroup.length && bestWin && a.y1 - a.y0 < bestWin.y1 - bestWin.y0)) { bestGroup = grp; bestWin = a; }
+            });
+            if (bestGroup.length < 4) return null;
+            const xs = bestGroup.map(L => L.x).sort((a, b) => a - b);
+            const ytop = bestWin.y0, ybot = bestWin.y1;
+            const xmin = xs[0], xmax = xs[xs.length - 1];
+            // خطوط أفقية
+            const ys = [];
+            let prev = -10;
+            for (let y = Math.max(K, ytop - 3); y <= Math.min(h - K - 1, ybot + 3); y++) {
+                const r = longestRun(xmin, xmax, x => hPix(x, y));
+                if (r && r[1] - r[0] >= (xmax - xmin) * 0.85) {
+                    if (y - prev <= 2) ys[ys.length - 1] = Math.round((ys[ys.length - 1] + y) / 2); else ys.push(y);
+                    prev = y;
+                }
+            }
+            const cols = [], rows = [];
+            for (let i = 0; i < xs.length - 1; i++) if (xs[i + 1] - xs[i] >= 40) cols.push([xs[i], xs[i + 1]]);
+            for (let i = 0; i < ys.length - 1; i++) if (ys[i + 1] - ys[i] >= 25) rows.push([ys[i], ys[i + 1]]);
+            if (cols.length < 3 || rows.length < 2) return null;
+            return { g, w, h, cols, rows };
+        }
+
+        function cropForOcr(src, x0, y0, x1, y1, scale) {
+            const pad = 20, cw = Math.round((x1 - x0) * scale), ch = Math.round((y1 - y0) * scale);
+            const c = document.createElement('canvas'); c.width = cw + pad * 2; c.height = ch + pad * 2;
+            const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+            x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+            x.drawImage(src, x0, y0, x1 - x0, y1 - y0, pad, pad, cw, ch);
+            return c;
+        }
+        function cellHasInk(grid, x0, y0, x1, y1) {
+            let n = 0;
+            for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (grid.g[y * grid.w + x] < 150 && ++n >= 20) return true;
+            return false;
+        }
+
+        /* تصحيح أخطاء القراءة الشائعة */
+        function fixDigits(s) {
+            return s.replace(/[OoQD]/g, '0').replace(/[Il|!i]/g, '1').replace(/[Ss]/g, '5').replace(/[éÉG&]/g, '6').replace(/B/g, '8').replace(/Z/g, '2');
+        }
+        function editDist(a, b) {
+            const m = [...Array(a.length + 1)].map((_, i) => [i, ...Array(b.length).fill(0)]);
+            for (let j = 0; j <= b.length; j++) m[0][j] = j;
+            for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+                m[i][j] = Math.min(m[i - 1][j] + 1, m[i][j - 1] + 1, m[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            return m[a.length][b.length];
+        }
+        function fixCode(raw) {
+            const t = raw.replace(/\s+/g, '');
+            let pre = t.slice(0, 3).toUpperCase(), num = t.slice(3);
+            if (num.length === 4) num = num.replace(/[Tt|!]/, '');
+            const near = SCH_PREFIXES.includes(pre) ? pre : SCH_PREFIXES.find(p => editDist(p, pre) <= 1);
+            if (near) pre = near;
+            return pre + fixDigits(num.slice(0, 3));
+        }
+        function parseTimeText(t) {
+            const m = (t || '').replace(/[Oo]/g, '0').match(/(\d{1,2})\s*[:.]\s*(\d{2})(?:\s*[:.]\s*\d{2})?\s*[-–—]\s*(\d{1,2})\s*[:.]\s*(\d{2})/);
+            if (!m) return '';
+            const p = n => String(n).padStart(2, '0');
+            return `${p(m[1])}:${m[2]} - ${p(m[3])}:${m[4]}`;
+        }
+        function parseCellText(text) {
+            const lines = (text || '').split('\n').map(l => l.trim()).filter(Boolean);
+            if (!lines.length) return null;
+            const codeRe = /[-–—]\s*([A-Za-z]{3}\s?[0-9OoIlTt|!]{3,4})(?![A-Za-z0-9])/;
+            let k = lines.findIndex(l => codeRe.test(l)), code = '', subject, tail = [];
+            if (k >= 0) {
+                const m = lines[k].match(codeRe);
+                code = fixCode(m[1]);
+                tail = lines[k].slice(m.index + m[0].length).trim().split(/\s+/).filter(Boolean);
+                subject = lines.slice(0, k).concat(lines[k].slice(0, m.index)).join(' ').replace(/\s+/g, ' ').trim();
+            } else { subject = lines.join(' '); k = -1; }
+            let rest = tail.concat(lines.slice(k + 1)), type = '';
+            const ti = rest.findIndex(l => /^(lec|lab|tut|tutorials?|sec)\b/i.test(l) && l.split(/\s+/).length === 1);
+            if (ti >= 0) { type = rest[ti].toUpperCase(); rest.splice(ti, 1); }
+            let room = '';
+            const ri = rest.findIndex((l, i) => i > 0 && /^[A-Za-z][A-Za-z0-9!|éÉ]{2,3}$/.test(l));
+            if (ri >= 0) { room = rest[ri][0].toUpperCase() + fixDigits(rest[ri].slice(1)); rest.splice(ri, 1); }
+            let group = rest.join(' ').replace(/\s+/g, ' ').trim();
+            const hw = group.split(' '); if (hw.length % 2 === 0 && hw.slice(0, hw.length / 2).join(' ') === hw.slice(hw.length / 2).join(' ')) group = hw.slice(0, hw.length / 2).join(' ');
+            let badgeClass = 'lec', badgeText = 'Lecture';
+            if (/virtual|online/i.test(group)) { badgeClass = 'online'; badgeText = 'Online'; }
+            else if (type === 'LAB' || /^lab\b/i.test(group)) { badgeClass = 'lab'; badgeText = 'Lab'; }
+            else if (/^tut/i.test(type) || /tutorial/i.test(type)) { badgeClass = 'tut'; badgeText = 'Tutorial'; }
+            const details = [code, room ? 'Hall ' + room : '', group].filter(Boolean).join(' | ');
+            return { subject, details, badgeClass, badgeText, code };
+        }
+
+        async function createOcrWorker() {
+            if (!window.Tesseract) await loadScriptOnce('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+            return await Tesseract.createWorker('eng', 1);
+        }
+
+        async function analyzeScheduleCanvas(canvas, setStatus) {
+            setStatus('جاري تحديد خطوط الجدول...');
+            const grid = detectGrid(canvas);
+            if (!grid) throw new Error('مش قادر ألاقي جدول في الصورة. استخدم لقطة شاشة واضحة للجدول كله.');
+            const timeCol = grid.cols[0], dayCols = grid.cols.slice(1, 6);
+            if (dayCols.length < 2) throw new Error('الجدول مش واضح بما يكفي.');
+            setStatus('جاري تحميل محرك القراءة (أول مرة بياخد وقت)...');
+            const worker = await createOcrWorker();
+            const items = [];
+            try {
+                // الأوقات
+                await worker.setParameters({ tessedit_pageseg_mode: '7', tessedit_char_whitelist: '0123456789:-' });
+                const times = [];
+                for (let r = 0; r < grid.rows.length; r++) {
+                    setStatus(`قراءة الأوقات ${r + 1}/${grid.rows.length}...`);
+                    const [y0, y1] = grid.rows[r];
+                    const sc = Math.max(1, Math.min(5, Math.round(520 / (timeCol[1] - timeCol[0]))));
+                    const cv = cropForOcr(canvas, timeCol[0] + 3, y0 + 3, timeCol[1] - 2, y1 - 2, sc);
+                    const { data } = await worker.recognize(cv);
+                    times.push(parseTimeText(data.text));
+                }
+                // الخلايا
+                await worker.setParameters({ tessedit_pageseg_mode: '6', tessedit_char_whitelist: '' });
+                for (let r = 0; r < grid.rows.length; r++) {
+                    const [y0, y1] = grid.rows[r];
+                    for (let c = 0; c < dayCols.length; c++) {
+                        const [x0, x1] = dayCols[c];
+                        if (!cellHasInk(grid, x0 + 3, y0 + 3, x1 - 2, y1 - 2)) continue;
+                        setStatus(`قراءة المحاضرات (الصف ${r + 1}/${grid.rows.length})...`);
+                        const sc = Math.max(1, Math.min(5, Math.round(720 / (x1 - x0))));
+                        const cv = cropForOcr(canvas, x0 + 3, y0 + 3, x1 - 2, y1 - 2, sc);
+                        const { data } = await worker.recognize(cv);
+                        const it = parseCellText(data.text);
+                        if (!it || (!it.code && !times[r])) continue;       // صف العناوين أو خلية فاضية
+                        items.push({ day: c, time: times[r] || '', ...it });
+                    }
+                }
+            } finally { try { await worker.terminate(); } catch (e) { } }
+            return items;
+        }
+
+        /* شاشة المراجعة قبل الحفظ */
+        function showScheduleReview(items, defaultName) {
+            const old = document.getElementById('aiReviewOverlay'); if (old) old.remove();
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+            const badge = { lec: 'Lecture', lab: 'Lab', tut: 'Tutorial', online: 'Online' };
+            const ov = document.createElement('div');
+            ov.id = 'aiReviewOverlay';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.7);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;box-sizing:border-box';
+            const inp = 'padding:7px 9px;border-radius:8px;border:1px solid var(--card-border);background:rgba(0,0,0,.2);color:var(--text-color);box-sizing:border-box;font-size:.85rem;width:100%';
+            const rowHtml = it => `<div class="ai-row" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;margin-bottom:8px;border:1px solid var(--card-border);border-radius:12px">
+                <select class="ai-day" style="${inp}">${days.map((d, i) => `<option value="${i}" ${i === it.day ? 'selected' : ''}>${d}</option>`).join('')}</select>
+                <input class="ai-time" dir="rtl" placeholder="9:00 ص - 10:40 ص" value="${esc(to12h(it.time))}" style="${inp}">
+                <input class="ai-subject" placeholder="اسم المادة" value="${esc(it.subject)}" style="${inp};grid-column:1/3">
+                <input class="ai-details" dir="ltr" placeholder="التفاصيل" value="${esc(it.details)}" style="${inp};grid-column:1/3">
+                <select class="ai-badge" style="${inp}">${Object.keys(badge).map(k => `<option value="${k}" ${k === it.badgeClass ? 'selected' : ''}>${badge[k]}</option>`).join('')}</select>
+                <button type="button" onclick="this.closest('.ai-row').remove()" style="${inp};cursor:pointer;color:#ef4444">🗑 حذف</button>
+            </div>`;
+            ov.innerHTML = `<div style="background:var(--bg-color);color:var(--text-color);border:1px solid var(--card-border);border-radius:16px;padding:16px;width:100%;max-width:560px">
+                <h3 style="margin:0 0 6px">✨ راجع المواد اللي اتقرت (${items.length})</h3>
+                <p style="margin:0 0 12px;font-size:.85rem;opacity:.8">القراءة الآلية ممكن تغلط في حرف أو رقم، عدّل أي حاجة غلط قبل الحفظ.</p>
+                <input id="aiReviewName" placeholder="اسم الجدول" value="${esc(defaultName)}" style="${inp};margin-bottom:10px">
+                <div id="aiReviewRows">${items.map(rowHtml).join('')}</div>
+                <div style="display:flex;gap:8px;margin-top:10px">
+                    <button type="button" id="aiReviewSave" class="btn" style="flex:2">💾 حفظ الجدول</button>
+                    <button type="button" id="aiReviewCancel" class="btn" style="flex:1;background:#475569">إلغاء</button>
+                </div></div>`;
+            document.body.appendChild(ov);
+            ov.querySelector('#aiReviewCancel').onclick = () => ov.remove();
+            ov.querySelector('#aiReviewSave').onclick = () => {
+                const colorOf = s => { const m = (s || '').match(/^([A-Z]{3})\d{3}/); const p = m && m[1].toLowerCase(); return ['cec', 'cet', 'gen', 'ept', 'hum'].includes(p) ? p : 'cec'; };
+                const sch = { id: 'sch_ai_' + Date.now(), name: ov.querySelector('#aiReviewName').value.trim() || 'جدول جديد', days: { 0: [], 1: [], 2: [], 3: [], 4: [] } };
+                let n = 0;
+                ov.querySelectorAll('.ai-row').forEach(r => {
+                    const subject = r.querySelector('.ai-subject').value.trim(); if (!subject) return;
+                    const details = r.querySelector('.ai-details').value.trim(), bc = r.querySelector('.ai-badge').value;
+                    sch.days[Number(r.querySelector('.ai-day').value)].push({
+                        id: 'ai_' + Date.now() + '_' + (n++), time: normTime(r.querySelector('.ai-time').value), subject, details,
+                        color: colorOf(details), badgeClass: bc, badgeText: badge[bc], driveUrl: '', absencePercent: 5, maxAbsence: 25
+                    });
+                });
+                if (!n) return alert('مفيش مواد للحفظ');
+                Object.keys(sch.days).forEach(d => sch.days[d].sort((a, b) => a.time.localeCompare(b.time)));
+                const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+                schedules.push(sch);
+                localStorage.setItem('schedules', JSON.stringify(schedules));
+                updateScheduleDropdowns();
+                ov.remove();
+                alert('✨ تم إنشاء الجدول بنجاح! (' + n + ' محاضرة)');
+            };
+        }
+
+        async function parseScheduleImageAI() {
+            const nameInput = document.getElementById('aiNewScheduleName');
+            const fileInput = document.getElementById('scheduleImageInput');
+            const statusEl = document.getElementById('aiLoadingStatus');
+            if (fileInput.files.length === 0) return alert('الرجاء اختيار صورة الجدول أولاً!');
+            const setStatus = t => { statusEl.style.display = 'block'; statusEl.textContent = '🤖 ' + t; };
+            try {
+                setStatus('جاري فتح الصورة...');
+                const canvas = await fileToCanvas(fileInput.files[0], 3200);
+                const items = await analyzeScheduleCanvas(canvas, setStatus);
+                if (!items.length) throw new Error('ما لقيتش محاضرات في الصورة. جرّب لقطة شاشة أوضح للجدول.');
+                statusEl.style.display = 'none';
+                showScheduleReview(items, nameInput.value.trim() || 'جدول جديد');
+                nameInput.value = ''; fileInput.value = '';
+            } catch (e) {
+                console.error(e);
+                statusEl.style.display = 'block';
+                statusEl.textContent = '⚠️ ' + (e.message || 'حصل خطأ أثناء التحليل');
+            }
+        }
+
+
+        /* ===== اختيار الوقت بنظام 12 ساعة + ارتفاع الشريط السفلي ===== */
+        function make12hPicker(id) {
+            const inp = document.getElementById(id); if (!inp) return;
+            const nat = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            inp.type = 'hidden';
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;gap:6px;direction:ltr;align-items:center';
+            const st = 'flex:1;min-width:0;padding:10px 6px;border-radius:10px;border:1px solid var(--card-border);background:rgba(0,0,0,.2);color:var(--text-color);font-size:1rem';
+            const mk = opts => { const e = document.createElement('select'); e.style.cssText = st; e.innerHTML = opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join(''); return e; };
+            const hh = mk([['', 'ساعة'], ...Array.from({ length: 12 }, (_, i) => [i + 1, i + 1])]);
+            const mm = mk([['', 'دقيقة'], ...Array.from({ length: 60 }, (_, i) => [i, String(i).padStart(2, '0')])]);
+            const ap = mk([['', '--'], ['AM', 'ص'], ['PM', 'م']]);
+            wrap.append(hh, mm, ap);
+            inp.parentNode.insertBefore(wrap, inp);
+            const update = () => {
+                if (hh.value === '' || mm.value === '' || ap.value === '') { nat.set.call(inp, ''); return; }
+                let h = +hh.value % 12; if (ap.value === 'PM') h += 12;
+                nat.set.call(inp, String(h).padStart(2, '0') + ':' + String(mm.value).padStart(2, '0'));
+            };
+            [hh, mm, ap].forEach(e => e.addEventListener('change', update));
+            Object.defineProperty(inp, 'value', {
+                get() { return nat.get.call(inp); },
+                set(v) {
+                    nat.set.call(inp, v || '');
+                    const m = /^(\d{1,2}):(\d{2})/.exec(v || '');
+                    if (!m) { hh.value = ''; mm.value = ''; ap.value = ''; return; }
+                    const h = +m[1]; hh.value = h % 12 || 12; mm.value = +m[2]; ap.value = h >= 12 ? 'PM' : 'AM';
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            make12hPicker('timeFrom'); make12hPicker('timeTo');
+            const nav = document.getElementById('bottomNav');
+            if (nav) {
+                const setH = () => document.documentElement.style.setProperty('--nav-h', (nav.offsetHeight || 0) + 'px');
+                setH();
+                if ('ResizeObserver' in window) new ResizeObserver(setH).observe(nav);
+                window.addEventListener('resize', setH);
+            }
+        });
+
+        function login() {
+            const id = document.getElementById('loginId').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const errorMsg = document.getElementById('loginError');
+            const user = users.find(u => u.id === id && u.pass === pass);
+            
+            if (user) {
+                currentLoggedInUser = user;
+                try { localStorage.setItem('session_user', JSON.stringify({ id: user.id, pass: user.pass })); } catch (e) {}
+                errorMsg.style.display = 'none';
+                document.getElementById('loginScreen').classList.remove('active');
+                
+                if (user.role === 'admin') {
+                    document.getElementById('pageTitle').innerText = 'لوحة تحكم الإدارة';
+                    document.getElementById('adminScreen').classList.add('active');
+                    
+                    document.getElementById('adminUpdateName').value = user.name;
+                    document.getElementById('adminUpdateId').value = user.id;
+                    document.getElementById('adminUpdatePass').value = user.pass;
+                    document.getElementById('adminProfileName').innerText = user.name;
+                    document.getElementById('adminProfileId').innerText = `ID: ${user.id}`;
+                    
+                    const avatarDisp = document.getElementById('adminAvatarDisplay');
+                    if(user.avatar) {
+                        avatarDisp.innerHTML = `<img src="${user.avatar}" alt="Admin">`;
+                    } else {
+                        avatarDisp.innerHTML = '👨‍💼';
+                    }
+
+                    updateScheduleDropdowns();
+                    renderUsersTable();
+                    renderCirclesAdmin();
+                    renderAdminMessages(user);
+                    renderSubjectOptionsAdmin();
+                } else {
+                    document.getElementById('pageTitle').innerText = `الجدول الدراسي - ${user.name}`;
+                    document.getElementById('studentScreen').classList.add('active');
+                    renderStudentDashboard(user);
+                    checkStudentNotifications(user);
+                }
+                document.getElementById('loginId').value = '';
+                document.getElementById('loginPass').value = '';
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        function logout() {
+            try { localStorage.removeItem('session_user'); } catch (e) {}
+            resetSessionUI();
+            currentLoggedInUser = null;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('pageTitle').innerText = 'تسجيل الدخول للنظام';
+        }
+
+        function uploadAdminAvatar(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let users = JSON.parse(localStorage.getItem('users')) || [];
+                    let admin = users.find(u => u.role === 'admin');
+                    if(admin) {
+                        admin.avatar = e.target.result;
+                        localStorage.setItem('users', JSON.stringify(users));
+                        currentLoggedInUser = admin;
+                        
+                        document.getElementById('adminAvatarDisplay').innerHTML = `<img src="${admin.avatar}" alt="Admin">`;
+                        alert('تم تحديث صورة الأدمن بنجاح! 📸');
+                    }
+                };
+                shrinkImage(file, 256).then(d => reader.onload({ target: { result: d } })).catch(() => alert('الصورة غير صالحة'));
+            }
+        }
+
+        function updateAdminData() {
+            const newName = document.getElementById('adminUpdateName').value.trim();
+            const newId = document.getElementById('adminUpdateId').value.trim();
+            const newPass = document.getElementById('adminUpdatePass').value.trim();
+
+            if (!newName || !newId || !newPass) return alert('برجاء إكمال جميع بيانات الأدمن!');
+            if (!validId(newId)) return alert('الـ ID لازم يكون حروف إنجليزي أو أرقام فقط');
+            
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const existingUser = users.find(u => u.id === newId && u.role !== 'admin');
+            if (existingUser) return alert('هذا الـ ID مستخدم بواسطة طالب آخر!');
+
+            const adminIndex = users.findIndex(u => u.role === 'admin');
+            if (adminIndex > -1) {
+                users[adminIndex].name = newName;
+                users[adminIndex].id = newId;
+                users[adminIndex].pass = newPass;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                alert('تم تحديث بياناتك بنجاح! سيتم تسجيل الخروج لتأكيد التغييرات.');
+                logout();
+            }
+        }
+
+        function lastPreview(m) {
+            return m.media ? ({ image: '🖼️ صورة', audio: '🎤 رسالة صوتية', file: '📄 ' + m.media.name }[m.media.kind]) : m.text;
+        }
+
+        function renderAdminMessages() {
+            const chats = jget('chats', {});
+            const c = document.getElementById('adminMessagesContainer');
+            const rows = jget('users', []).filter(u => u.role === 'student')
+                .map(u => ({ u, msgs: chats[adminChatId(u.id)] || [] })).filter(r => r.msgs.length)
+                .sort((a, b) => b.msgs[b.msgs.length - 1].ts - a.msgs[a.msgs.length - 1].ts);
+            c.innerHTML = rows.length ? rows.map(r => `
+                <div class="list-item" style="margin-bottom:10px">
+                    <div><strong style="color:var(--primary)">${esc(r.u.name)}</strong> <span style="font-size:.75rem;opacity:.6">(ID: ${esc(r.u.id)})</span>
+                    <div style="font-size:.85rem;opacity:.8">${esc(lastPreview(r.msgs[r.msgs.length - 1]))}</div></div>
+                    <button class="btn-small" data-id="${esc(r.u.id)}" onclick="openStudentChat(this.dataset.id)">💬 فتح المحادثة${unreadBadge(adminChatId(r.u.id))}</button>
+                </div>`).join('') : '<p class="empty-msg">لا توجد رسائل واردة حالياً. (تقدر تبدأ محادثة من زر ✉️ مراسلة في جدول الطلاب)</p>';
+        }
+
+        function openStudentChat(sid) {
+            const u = jget('users', []).find(x => x.id === sid);
+            openChat(adminChatId(sid), 'محادثة: ' + (u ? u.name : sid));
+        }
+
+        function sendDirectMessageToStudent(studentId) { openStudentChat(studentId); }
+
+        function addUser() {
+            const name = document.getElementById('newStudentName').value.trim();
+            const id = document.getElementById('newStudentId').value.trim();
+            const pass = document.getElementById('newStudentPass').value.trim();
+            const scheduleId = document.getElementById('newStudentSchedule').value;
+
+            if (!name || !id || !pass) return alert('برجاء إدخال جميع بيانات الطالب!');
+            if (!validId(id)) return alert('الـ ID لازم يكون حروف إنجليزي أو أرقام فقط (بدون مسافات أو رموز)');
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.find(u => u.id === id)) return alert('هذا الـ ID مسجل بالفعل!');
+
+            users.push({ id, pass, role: 'student', name, schedule: scheduleId, avatar: '', attendance: {}, notifiedAbsence: {}, notifications: [], todos: [], friends: [], friendRequests: [], groups: [], gpa: '' });
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            document.getElementById('newStudentName').value = '';
+            document.getElementById('newStudentId').value = '';
+            document.getElementById('newStudentPass').value = '';
+            renderUsersTable();
+            alert('تم إضافة الطالب بنجاح!');
+        }
+
+        function deleteUser(userId) {
+            if (confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                users = users.filter(u => u.id !== userId);
+                localStorage.setItem('users', JSON.stringify(users));
+                renderUsersTable();
+            }
+        }
+
+        function openEditModal(userId) {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(u => u.id === userId);
+            if(user) {
+                document.getElementById('editOriginalId').value = user.id;
+                document.getElementById('editStudentName').value = user.name;
+                document.getElementById('editStudentId').value = user.id;
+                document.getElementById('editStudentPass').value = user.pass;
+                document.getElementById('editStudentSchedule').value = user.schedule;
+                document.getElementById('editUserModal').classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editUserModal').classList.remove('active');
+        }
+
+        function saveUserEdit() {
+            const originalId = document.getElementById('editOriginalId').value;
+            const newName = document.getElementById('editStudentName').value.trim();
+            const newId = document.getElementById('editStudentId').value.trim();
+            const newPass = document.getElementById('editStudentPass').value.trim();
+            const newSchedule = document.getElementById('editStudentSchedule') ? document.getElementById('editStudentSchedule').value : '';
+
+            if (!newName || !newId || !newPass) return alert('يجب ملء جميع الحقول!');
+            if (!validId(newId)) return alert('الـ ID لازم يكون حروف إنجليزي أو أرقام فقط');
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            if (newId !== originalId && users.find(u => u.id === newId)) return alert('الـ ID الجديد مستخدم بالفعل!');
+
+            const userIndex = users.findIndex(u => u.id === originalId);
+            if (userIndex > -1) {
+                users[userIndex].name = newName;
+                users[userIndex].id = newId;
+                users[userIndex].pass = newPass;
+                if(newSchedule) users[userIndex].schedule = newSchedule;
+                localStorage.setItem('users', JSON.stringify(users));
+                closeModal();
+                renderUsersTable();
+                alert('تم التعديل بنجاح!');
+            }
+        }
+
+        function renderUsersTable() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const tbody = document.getElementById('usersList');
+            const searchInput = document.getElementById('searchStudentIdInput');
+            const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                if (user.role !== 'admin') {
+                    if (searchQuery && !user.id.toLowerCase().includes(searchQuery)) {
+                        return;
+                    }
+
+                    const userSch = schedules.find(s => s.id === user.schedule);
+                    const scheduleName = userSch ? userSch.name : 'محذوف/غير محدد';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight: bold; color: var(--primary);">${esc(user.id)}</td>
+                            <td>${esc(user.name)}</td>
+                            <td>${esc(user.pass)}</td>
+                            <td>${scheduleName}</td>
+                            <td>
+                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                    <button class="btn-small" onclick="sendDirectMessageToStudent('${user.id}')" style="padding:5px 10px; font-size:0.75rem;">✉️ مراسلة</button>
+                                    <button class="btn-small" onclick="openEditModal('${user.id}')" style="padding:5px 10px; font-size:0.75rem;">تعديل</button>
+                                    <button class="btn-small btn-danger" onclick="deleteUser('${user.id}')" style="padding:5px 10px; font-size:0.75rem;">حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+
+        function renderStudentDashboard(user) {
+            renderStudentSchedule(user);
+            renderStudentProfile(user);
+            renderFriendsSystem(user);
+            renderGroups(user);
+        }
+
+        function checkStudentNotifications(user) {
+            if(user.notifications && user.notifications.length > 0) {
+                user.notifications.forEach(n => {
+                    appendMessage(`📬 <strong>إشعار من الإدارة:</strong><br>${n.text} <span style="font-size:0.7rem; opacity:0.6;">(${n.time})</span>`, 'bot');
+                });
+                user.notifications = [];
+                saveUserDataToStorage();
+            }
+        }
+
+        function toggleSubjectAttendance(subjectId, status) {
+            let subjectName = '';
+            (JSON.parse(localStorage.getItem('schedules')) || []).forEach(s => { for (let d = 0; d <= 4; d++) (s.days[d] || []).forEach(c => { if (c.id === subjectId) subjectName = c.subject; }); });
+            if(!currentLoggedInUser.attendance) currentLoggedInUser.attendance = {};
+            currentLoggedInUser.attendance[subjectId] = status;
+
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            let mySchedule = schedules.find(s => s.id === currentLoggedInUser.schedule) || schedules[0];
+            
+            let totalAbsenceForSubject = 0;
+            for(let d = 0; d <= 4; d++) {
+                let cards = mySchedule.days[d] || [];
+                cards.forEach(c => {
+                    if(c.subject === subjectName) {
+                        let cStatus = currentLoggedInUser.attendance[c.id];
+                        if(cStatus === 'غائب') {
+                            totalAbsenceForSubject += (c.absencePercent || 5);
+                        }
+                    }
+                });
+            }
+
+            if(!currentLoggedInUser.notifiedAbsence) currentLoggedInUser.notifiedAbsence = {};
+            if(totalAbsenceForSubject >= 10 && !currentLoggedInUser.notifiedAbsence[subjectName]) {
+                currentLoggedInUser.notifiedAbsence[subjectName] = true;
+                
+                if(!currentLoggedInUser.notifications) currentLoggedInUser.notifications = [];
+                currentLoggedInUser.notifications.push({
+                    text: `⚠️ <strong>إنذار تجاوز نسبة الغياب:</strong> لقد وصلت نسبة غيابك في مادة (${subjectName}) إلى ${totalAbsenceForSubject}% (تجاوزت حد الـ 10%). يرجى الانتباه ومراجعة الإدارة.`,
+                    time: fmtNow12()
+                });
+                
+                alert(`⚠️ تنبيه هامة: وصلت نسبة غيابك في مادة (${subjectName}) إلى ${totalAbsenceForSubject}% وتم إرسال إشعار رسمي بحسابك!`);
+            } else if(totalAbsenceForSubject < 10) {
+                currentLoggedInUser.notifiedAbsence[subjectName] = false;
+            }
+
+            saveUserDataToStorage();
+            renderStudentSchedule(currentLoggedInUser);
+            renderStudentProfile(currentLoggedInUser);
+            checkStudentNotifications(currentLoggedInUser);
+        }
+
+        function renderStudentSchedule(user) {
+            const container = document.getElementById('mainContainer');
+            const quickLinksContainer = document.getElementById('studentQuickLinks');
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const appCircles = JSON.parse(localStorage.getItem('appCircles')) || [];
+            let mySchedule = schedules.find(s => s.id === user.schedule) || schedules[0];
+            
+            quickLinksContainer.innerHTML = '';
+            appCircles.forEach((circle, cIndex) => {
+                if (circle.enabled) {
+                    quickLinksContainer.innerHTML += `
+                        <a href="${circle.url}" target="_blank" class="quick-circle qc-${cIndex + 1}" title="${circle.name}">${circle.name}</a>
+                    `;
+                }
+            });
+
+            container.innerHTML = '';
+            const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+            
+            for (let i = 0; i <= 4; i++) {
+                let dayHtml = `<div class="day-column ${i === todayIdx() ? 'active' : ''}" id="day-${i}">`;
+                dayHtml += `<div class="day-title">${dayNames[i]}</div>`;
+                
+                const dayCards = mySchedule.days[i];
+                if (dayCards && dayCards.length > 0) {
+                    dayCards.forEach(card => {
+                        const attStatus = user.attendance && user.attendance[card.id] ? user.attendance[card.id] : 'لم يُسجل';
+                        const attColor = attStatus === 'حاضر' ? '#10b981' : (attStatus === 'غائب' ? '#ef4444' : '#f59e0b');
+                        const absP = card.absencePercent || 5;
+
+                        dayHtml += `
+                            <div class="card ${card.color}">
+                                <div class="time"><span>🕒</span> <span dir="rtl">${to12h(card.time)}</span></div>
+                                <div class="subject">${esc(card.subject)}</div>
+                                <div class="details">${esc(card.details)}</div>
+                                <div style="margin: 8px 0; font-size:0.85rem; display:flex; flex-wrap:wrap; gap:4px 10px; justify-content:space-between; align-items:center;">
+                                    <span>الحالة: <strong style="color:${attColor}">${attStatus}</strong></span>
+                                    <span>نسبة غياب هذا اليوم: <strong style="color:var(--hum-color);">${absP}%</strong></span>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                                    <button class="btn-small btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="toggleSubjectAttendance('${card.id}', 'حاضر')">✅ حضور</button>
+                                    <button class="btn-small btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="toggleSubjectAttendance('${card.id}', 'غائب')">❌ غياب (${absP}%)</button>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:space-between; align-items:center; margin-top:10px;">
+                                    <div class="badge ${card.badgeClass}">${esc(card.badgeText)}</div>
+                                    <button class="drive-link-btn" style="cursor:pointer" onclick="openMap('${card.id}')">🗺️ الخريطة</button>
+                                    ${card.driveUrl ? `<a href="${card.driveUrl}" target="_blank" class="drive-link-btn">📁 المصادر</a>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    dayHtml += `<div class="empty-msg">لا يوجد محاضرات في هذا اليوم</div>`;
+                }
+                dayHtml += `</div>`;
+                container.innerHTML += dayHtml;
+            }
+            initStudentTabs();
+        }
+
+        function uploadStudentAvatar(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentLoggedInUser.avatar = e.target.result;
+                    saveUserDataToStorage();
+                    renderStudentProfile(currentLoggedInUser);
+                    alert('تم تحديث صورتك الشخصية بنجاح! 📸');
+                };
+                shrinkImage(file, 256).then(d => reader.onload({ target: { result: d } })).catch(() => alert('الصورة غير صالحة'));
+            }
+        }
+
+        function renderStudentProfile(user) {
+            document.getElementById('profileNameDisplay').innerText = user.name;
+            document.getElementById('profileIdDisplay').innerText = `ID: ${user.id}`;
+            
+            const avatarContainer = document.getElementById('profileAvatarDisplay');
+            if(user.avatar) {
+                avatarContainer.innerHTML = `<img src="${user.avatar}" alt="صورة الطالب">`;
+            } else {
+                avatarContainer.innerHTML = '👨‍🎓';
+            }
+
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const userSch = schedules.find(s => s.id === user.schedule) || schedules[0];
+
+            let totalSubs = 0;
+            let activeDaysCount = 0;
+            for(let d = 0; d <= 4; d++) {
+                if(userSch.days[d] && userSch.days[d].length > 0) {
+                    totalSubs += userSch.days[d].length;
+                    activeDaysCount++;
+                }
+            }
+
+            document.getElementById('statTotalSubjects').innerText = totalSubs;
+            document.getElementById('statActiveDays').innerText = activeDaysCount;
+            document.getElementById('statScheduleName').innerText = userSch.name;
+
+            const attendanceContainer = document.getElementById('studentAttendanceSummary');
+            attendanceContainer.innerHTML = '';
+            
+            let subjectAbsences = {};
+            for (let d = 0; d <= 4; d++) {
+                const cards = userSch.days[d] || [];
+                cards.forEach(c => {
+                    if(!subjectAbsences[c.subject]) {
+                        subjectAbsences[c.subject] = { totalAbs: 0, maxAllowed: c.maxAbsence || 25 };
+                    }
+                    let st = user.attendance && user.attendance[c.id];
+                    if(st === 'غائب') {
+                        subjectAbsences[c.subject].totalAbs += (c.absencePercent || 5);
+                    }
+                });
+            }
+
+            let attendanceHtml = '';
+            for(let subName in subjectAbsences) {
+                let data = subjectAbsences[subName];
+                let isWarning = data.totalAbs >= 10;
+                let colorStyle = isWarning ? '#ef4444' : '#10b981';
+
+                attendanceHtml += `
+                    <div class="list-item">
+                        <span>📖 <strong>${esc(subName)}</strong> (الحد المسموح: ${data.maxAllowed}%)</span>
+                        <span style="font-weight:bold; color:${colorStyle};">إجمالي الغياب: ${data.totalAbs}% ${isWarning ? '⚠️ (تجاوز 10%)' : ''}</span>
+                    </div>
+                `;
+            }
+
+            attendanceContainer.innerHTML = attendanceHtml || '<p style="text-align:center; opacity:0.6;">لا توجد مواد مسجلة</p>';
+
+            if(user.gpa) {
+                document.getElementById('gpaResultDisplay').innerText = `تقديرك الحالي: ${user.gpa}`;
+            }
+
+            renderStudentTodos(user);
+        }
+
+        function sendFriendRequest() {
+            const targetId = document.getElementById('friendIdInput').value.trim();
+            if (!targetId) return alert('الرجاء إدخال الـ ID الخاص بالصديق!');
+            if (targetId === currentLoggedInUser.id) return alert('لا يمكنك إرسال طلب صداقة لنفسك!');
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const targetUser = users.find(u => u.id === targetId && u.role === 'student');
+
+            if (!targetUser) return alert('لم يتم العثور على طالب بهذا الـ ID!');
+
+            if (currentLoggedInUser.friends && currentLoggedInUser.friends.some(f => f.id === targetId)) {
+                return alert('هذا الطالب موجود في قائمة أصدقائك بالفعل!');
+            }
+
+            if (!targetUser.friendRequests) targetUser.friendRequests = [];
+            if (targetUser.friendRequests.some(r => r.fromId === currentLoggedInUser.id)) {
+                return alert('لقد قمت بإرسال طلب صداقة لهذا الطالب مسبقاً!');
+            }
+
+            targetUser.friendRequests.push({
+                fromId: currentLoggedInUser.id,
+                fromName: currentLoggedInUser.name
+            });
+
+            localStorage.setItem('users', JSON.stringify(users));
+            document.getElementById('friendIdInput').value = '';
+            alert(`تم إرسال طلب الصداقة إلى ${targetUser.name} بنجاح!`);
+        }
+
+        function acceptFriendRequest(senderId) {
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            let me = users.find(u => u.id === currentLoggedInUser.id);
+            let sender = users.find(u => u.id === senderId);
+
+            if (me && sender) {
+                if (!me.friends) me.friends = [];
+                if (!sender.friends) sender.friends = [];
+
+                me.friends.push({ id: sender.id, name: sender.name });
+                sender.friends.push({ id: me.id, name: me.name });
+
+                me.friendRequests = me.friendRequests.filter(r => r.fromId !== senderId);
+
+                localStorage.setItem('users', JSON.stringify(users));
+                currentLoggedInUser = me;
+                renderFriendsSystem(me);
+                alert(`أصبحت أنت و ${sender.name} أصدقاء الآن! 🎉`);
+            }
+        }
+
+        function rejectFriendRequest(senderId) {
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            let me = users.find(u => u.id === currentLoggedInUser.id);
+
+            if (me) {
+                me.friendRequests = me.friendRequests.filter(r => r.fromId !== senderId);
+                localStorage.setItem('users', JSON.stringify(users));
+                currentLoggedInUser = me;
+                renderFriendsSystem(me);
+            }
+        }
+
+        function deleteFriend(friendId) {
+            if (confirm('هل أنت متأكد من إزالة هذا الصديق؟')) {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                let me = users.find(u => u.id === currentLoggedInUser.id);
+                let friendUser = users.find(u => u.id === friendId);
+
+                if (me) me.friends = me.friends.filter(f => f.id !== friendId);
+                if (friendUser && friendUser.friends) friendUser.friends = friendUser.friends.filter(f => f.id !== me.id);
+
+                localStorage.setItem('users', JSON.stringify(users));
+                currentLoggedInUser = me;
+                renderFriendsSystem(me);
+            }
+        }
+
+        function renderFriendsSystem(user) {
+            const reqContainer = document.getElementById('friendRequestsContainer');
+            reqContainer.innerHTML = '';
+            const requests = user.friendRequests || [];
+
+            if (requests.length === 0) {
+                reqContainer.innerHTML = `<p style="text-align:center; opacity:0.6; font-size:0.85rem; margin:10px 0;">لا توجد طلبات صداقة معلقة</p>`;
+            } else {
+                requests.forEach(r => {
+                    reqContainer.innerHTML += `
+                        <div class="list-item">
+                            <div><strong>📩 ${esc(r.fromName)}</strong> <span style="font-size:0.8rem; opacity:0.7;">(ID: ${esc(r.fromId)})</span></div>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn-small btn-success" style="padding: 4px 10px; font-size: 0.75rem;" onclick="acceptFriendRequest('${r.fromId}')">قبول 👍</button>
+                                <button class="btn-small btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="rejectFriendRequest('${r.fromId}')">رفض ✖</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            const listContainer = document.getElementById('friendsListContainer');
+            listContainer.innerHTML = '';
+            const friends = user.friends || [];
+
+            if (friends.length === 0) {
+                listContainer.innerHTML = `<p style="text-align:center; opacity:0.6; font-size:0.85rem; margin:10px 0;">لا يوجد أصدقاء مقبولين حتى الآن</p>`;
+            } else {
+                friends.forEach(f => {
+                    listContainer.innerHTML += `
+                        <div class="list-item">
+                            <div><strong>👤 ${esc(f.name)}</strong> <span style="font-size:0.8rem; opacity:0.7;">(ID: ${esc(f.id)})</span></div>
+                            <div style="display:flex;gap:6px"><button class="btn-small btn-success" style="padding:4px 10px;font-size:.75rem" data-id="${esc(f.id)}" data-name="${esc(f.name)}" onclick="openFriendChat(this.dataset.id,this.dataset.name)">💬 مراسلة${unreadBadge(dmChatId(currentLoggedInUser.id, f.id))}</button><button class="btn-small btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="deleteFriend('${f.id}')">إزالة الصديق</button></div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function myGroups() { return jget('groups', []).filter(g => g.members.some(m => m.id === currentLoggedInUser.id)); }
+        function saveGroups(a) { jset('groups', a); }
+        function mutateGroup(gid, fn) {
+            const gs = jget('groups', []); const g = gs.find(x => x.id === gid);
+            if (g) { fn(g); saveGroups(gs); }
+            renderGroups(currentLoggedInUser);
+        }
+
+        function createProjectGroup() {
+            const name = document.getElementById('groupNameInput').value.trim();
+            if (!name) return alert('أدخل اسم المجموعة!');
+            const gs = jget('groups', []);
+            gs.push({ id: Date.now(), name, owner: currentLoggedInUser.id, members: [{ id: currentLoggedInUser.id, name: currentLoggedInUser.name }], turns: [] });
+            saveGroups(gs);
+            document.getElementById('groupNameInput').value = '';
+            renderGroups(currentLoggedInUser);
+        }
+
+        function deleteGroup(gid) {
+            const gs = jget('groups', []); const g = gs.find(x => x.id === gid); if (!g) return;
+            const own = g.owner === currentLoggedInUser.id;
+            if (!confirm(own ? 'حذف المجموعة لكل الأعضاء؟' : 'مغادرة المجموعة؟')) return;
+            if (own) { saveGroups(gs.filter(x => x.id !== gid)); const c = jget('chats', {}); delete c['grp_' + gid]; jset('chats', c); }
+            else { g.members = g.members.filter(m => m.id !== currentLoggedInUser.id); saveGroups(gs); }
+            renderGroups(currentLoggedInUser);
+        }
+
+        function addGroupMember(gid) {
+            const f = (currentLoggedInUser.friends || []).find(x => x.id === document.getElementById('gAdd_' + gid).value);
+            if (!f) return alert('اختر صديقاً من القائمة (لازم يكون في أصدقائك)');
+            mutateGroup(gid, g => { if (!g.members.some(m => m.id === f.id)) g.members.push({ id: f.id, name: f.name }); });
+        }
+
+        function removeGroupMember(gid, uid) {
+            mutateGroup(gid, g => { if (g.owner === currentLoggedInUser.id && uid !== g.owner) g.members = g.members.filter(m => m.id !== uid); });
+        }
+
+        function assignTurnToMember(gid) {
+            const t = document.getElementById('turnTask_' + gid).value.trim();
+            const m = document.getElementById('turnMember_' + gid).value;
+            if (!t || !m) return alert('أدخل اسم المهمة واختر المسؤول عنها!');
+            mutateGroup(gid, g => (g.turns = g.turns || []).push({ task: t, assignedTo: m, status: 'قيد التنفيذ' }));
+        }
+
+        function toggleTurnStatus(gid, i) {
+            mutateGroup(gid, g => { const t = (g.turns || [])[i]; if (t) t.status = t.status === 'قيد التنفيذ' ? 'مكتمل ✅' : 'قيد التنفيذ'; });
+        }
+
+        function deleteTurn(gid, i) { mutateGroup(gid, g => g.turns && g.turns.splice(i, 1)); }
+
+        function openGroupChat(gid) {
+            const g = jget('groups', []).find(x => x.id === gid);
+            if (g) openChat('grp_' + gid, '🚀 ' + g.name);
+        }
+
+        function renderGroups(user) {
+            const container = document.getElementById('groupsListContainer');
+            const groups = myGroups(); const friends = user.friends || [];
+            if (!groups.length) { container.innerHTML = `<p style="text-align:center;opacity:.6;font-size:.85rem;margin:10px 0;">لا توجد مجموعات مشاريع حالياً</p>`; return; }
+            container.innerHTML = groups.map(g => {
+                const isOwner = g.owner === user.id;
+                const addable = friends.filter(f => !g.members.some(m => m.id === f.id));
+                const turns = (g.turns || []).map((t, i) => `<div class="list-item" style="margin-bottom:6px;font-size:.85rem"><div>📌 ${esc(t.task)} — <span style="color:var(--primary)">👤 ${esc(t.assignedTo)}</span> <span style="font-size:.75rem;opacity:.7">(${esc(t.status)})</span></div><div style="display:flex;gap:6px"><button class="btn-small btn-warning" style="padding:2px 8px;font-size:.7rem" onclick="toggleTurnStatus(${g.id},${i})">تبديل الحالة</button><button class="btn-small btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteTurn(${g.id},${i})">حذف</button></div></div>`).join('') || `<div style="font-size:.8rem;opacity:.6;text-align:center">لا توجد أدوار موزعة بعد</div>`;
+                return `<div class="profile-section" style="margin-bottom:15px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong style="color:var(--primary)">🚀 ${esc(g.name)}</strong>
+                        <div style="display:flex;gap:6px"><button class="btn-small btn-success" onclick="openGroupChat(${g.id})">💬 شات المجموعة${unreadBadge('grp_' + g.id)}</button><button class="btn-small btn-danger" onclick="deleteGroup(${g.id})">${isOwner ? 'حذف المجموعة' : 'مغادرة'}</button></div></div>
+                    <div style="margin:10px 0;font-size:.85rem">👥 ${g.members.map(m => `<span class="badge">${esc(m.name)}${isOwner && m.id !== g.owner ? ` <a href="#" data-id="${esc(m.id)}" onclick="removeGroupMember(${g.id},this.dataset.id);return false" style="color:var(--gen-color)">×</a>` : ''}</span>`).join(' ')}</div>
+                    <div class="admin-controls"><select id="gAdd_${g.id}">${addable.map(f => `<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('') || '<option value="">لا يوجد أصدقاء لإضافتهم</option>'}</select><button class="btn-small" onclick="addGroupMember(${g.id})">➕ إضافة عضو</button></div>
+                    <div class="admin-controls"><input id="turnTask_${g.id}" placeholder="المهمة المطلوبة..."><select id="turnMember_${g.id}">${g.members.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('')}</select><button class="btn-small" onclick="assignTurnToMember(${g.id})">إسناد الدور</button></div>
+                    ${turns}</div>`;
+            }).join('');
+        }
+
+        function saveUserDataToStorage() {
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            let uIdx = users.findIndex(u => u.id === currentLoggedInUser.id);
+            if(uIdx > -1) {
+                users[uIdx] = currentLoggedInUser;
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        }
+
+        function enableNotifications() {
+            if (!("Notification" in window)) {
+                return alert("متصفحك لا يدعم الإشعارات.");
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification("نظام الجداول", { body: "تم تفعيل إشعارات التنبيه بالمحاضرات بنجاح! 🔔" });
+                }
+            });
+        }
+
+        function calculateGPA() {
+            const score = document.getElementById('gpaScoreInput').value.trim();
+            if(!score) return alert('أدخل قيمة المعدل!');
+            
+            currentLoggedInUser.gpa = score;
+            saveUserDataToStorage();
+            document.getElementById('gpaResultDisplay').innerText = `تم حفظ تقديرك الحالي: ${score}`;
+        }
+
+        function updateStudentPassword() {
+            const newPass = document.getElementById('studentNewPassInput').value.trim();
+            if(!newPass) return alert('الرجاء إدخال كلمة المرور الجديدة!');
+
+            currentLoggedInUser.pass = newPass;
+            saveUserDataToStorage();
+            document.getElementById('studentNewPassInput').value = '';
+            alert('تم تحديث كلمة المرور بنجاح!');
+        }
+
+        function addStudentTodo() {
+            const text = document.getElementById('todoInputText').value.trim();
+            if(!text) return;
+            if(!currentLoggedInUser.todos) currentLoggedInUser.todos = [];
+
+            currentLoggedInUser.todos.push({ text, id: Date.now() });
+            saveUserDataToStorage();
+            document.getElementById('todoInputText').value = '';
+            renderStudentTodos(currentLoggedInUser);
+        }
+
+        function deleteStudentTodo(todoId) {
+            currentLoggedInUser.todos = currentLoggedInUser.todos.filter(t => t.id !== todoId);
+            saveUserDataToStorage();
+            renderStudentTodos(currentLoggedInUser);
+        }
+
+        function renderStudentTodos(user) {
+            const container = document.getElementById('studentTodoListContainer');
+            container.innerHTML = '';
+            const todos = user.todos || [];
+
+            if(todos.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.6; font-size:0.85rem; margin:10px 0;">لا توجد ملاحظات أو مهام حالياً</p>`;
+                return;
+            }
+
+            todos.forEach(todo => {
+                container.innerHTML += `
+                    <div class="list-item">
+                        <span>📌 ${esc(todo.text)}</span>
+                        <button class="btn-small btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="deleteStudentTodo(${todo.id})">حذف</button>
+                    </div>
+                `;
+            });
+        }
+
+        function initStudentTabs() {
+            const dayBtns = document.querySelectorAll('.tab-btn');
+            dayBtns.forEach(b => b.classList.remove('active'));
+            if(dayBtns[todayIdx()]) dayBtns[todayIdx()].classList.add('active');
+
+            dayBtns.forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    newBtn.classList.add('active');
+                    const targetIndex = newBtn.getAttribute('data-index');
+                    document.querySelectorAll('.day-column').forEach(c => c.classList.remove('active'));
+                    document.getElementById('day-' + targetIndex).classList.add('active');
+                });
+            });
+        }
+
+        function toggleChatbot() {
+            const chatWin = document.getElementById('chatbotWindow');
+            chatWin.classList.toggle('active');
+        }
+
+        function handleBotOption(optionText) {
+            appendMessage(optionText, 'user');
+            setTimeout(() => {
+                const response = getBotResponse(optionText);
+                appendMessage(response, 'bot');
+            }, 300);
+        }
+
+        function sendChatMessage() {
+            const inputEl = document.getElementById('chatbotInput');
+            const query = inputEl.value.trim();
+            if(!query) return;
+
+            appendMessage(query, 'user');
+            inputEl.value = '';
+
+            setTimeout(() => {
+                if (isChattingWithAdmin) {
+                    let users = JSON.parse(localStorage.getItem('users')) || [];
+                    let admin = users.find(u => u.role === 'admin');
+                    if(admin) {
+                        if(!admin.adminMessages) admin.adminMessages = [];
+                        admin.adminMessages.push({
+                            studentId: currentLoggedInUser.id,
+                            studentName: currentLoggedInUser.name,
+                            text: query,
+                            time: fmtNow12()
+                        });
+                        localStorage.setItem('users', JSON.stringify(users));
+                    }
+                    appendMessage(`✅ تم إرسال رسالتك إلى المدير (مهاب) بنجاح وسيتم الرد عليك قريباً!`, 'bot');
+                    isChattingWithAdmin = false;
+                    return;
+                }
+
+                const response = getBotResponse(query);
+                appendMessage(response, 'bot');
+            }, 300);
+        }
+
+        function appendMessage(text, sender) {
+            const container = document.getElementById('chatbotMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}`;
+            if (sender === 'user') msgDiv.textContent = text; else msgDiv.innerHTML = text;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function getBotResponse(input) {
+            const text = input.toLowerCase();
+            const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس"];
+            const schedules = JSON.parse(localStorage.getItem('schedules')) || [];
+            const circles = JSON.parse(localStorage.getItem('appCircles')) || [];
+
+            let userSch = null;
+            if(currentLoggedInUser) {
+                userSch = schedules.find(s => s.id === currentLoggedInUser.schedule) || schedules[0];
+            }
+
+            if (text.includes("التحدث مع المدير") || text.includes("المدير") || text.includes("كلم المدير")) {
+                openAdminChat();
+                return `👨‍💼 <strong>محادثة المدير:</strong><br>فتحت لك نافذة المحادثة، تقدر تبعت نص وصور وفويس وملفات.`;
+            }
+
+            if (text.includes("جدول النهاردة") || text.includes("النهاردة") || text.includes("اليوم")) {
+                const todayIndex = new Date().getDay();
+                if(todayIndex > 4) return "النهاردة عطلة أسبوعية! استمتع بيومك 😃";
+                const dayCards = userSch ? (userSch.days[todayIndex] || []) : [];
+                if(dayCards.length === 0) return `النهاردة (${dayNames[todayIndex]}) معندكش محاضرات!`;
+                let reply = `📅 <strong>جدولك النهاردة (${dayNames[todayIndex]}):</strong><br>`;
+                dayCards.forEach(c => { reply += `• ${c.subject} (${to12h(c.time)}) - ${c.details}<br>`; });
+                return reply;
+            }
+
+            if (text.includes("روابط المنصة") || text.includes("روابط")) {
+                let reply = `🔗 <strong>الروابط السريعة المتاحة:</strong><br>`;
+                circles.forEach(c => {
+                    if(c.enabled) reply += `• <a href="${c.url}" target="_blank" style="color:var(--primary);">${c.name}</a><br>`;
+                });
+                return reply;
+            }
+
+            for(let i = 0; i < dayNames.length; i++) {
+                if(text.includes(dayNames[i])) {
+                    if(!userSch) return "يرجى تسجيل الدخول لعرض جدولك.";
+                    const dayCards = userSch.days[i] || [];
+                    if(dayCards.length === 0) return `يوم ${dayNames[i]} لا يوجد لديك أي محاضرات 🎉`;
+                    let reply = `📅 <strong>محاضرات يوم ${dayNames[i]}:</strong><br>`;
+                    dayCards.forEach(c => {
+                        reply += `• ${c.subject} (${to12h(c.time)}) في ${c.details}<br>`;
+                    });
+                    return reply;
+                }
+            }
+
+            return `عذراً، هل تريد التحدث مع المدير أم الاستعلام عن الجدول؟<br>
+            <div class="chat-options-bar" style="margin-top:8px;">
+                <button class="chat-option-pill" onclick="handleBotOption('التحدث مع المدير')">👨‍💼 التحدث مع المدير</button>
+                <button class="chat-option-pill" onclick="handleBotOption('جدول النهاردة')">📅 جدول النهاردة</button>
+            </div>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await GHSync.ready;
+            initDatabase();
+            GHSync.afterInit();
+            
+            const btnScheduleTab = document.getElementById('btnScheduleTab');
+            const btnProfileTab = document.getElementById('btnProfileTab');
+            const btnFriendsTab = document.getElementById('btnFriendsTab');
+            const btnGroupsTab = document.getElementById('btnGroupsTab');
+
+            const scheduleSection = document.getElementById('studentScheduleSection');
+            const profileSection = document.getElementById('studentProfileSection');
+            const friendsSection = document.getElementById('studentFriendsSection');
+            const groupsSection = document.getElementById('studentGroupsSection');
+
+            const scheduleSubToggles = document.getElementById('scheduleSubToggles');
+            const dayTabsContainer = document.getElementById('dayTabsContainer');
+
+            function hideAllSections() {
+                scheduleSection.style.display = 'none';
+                profileSection.style.display = 'none';
+                friendsSection.style.display = 'none';
+                groupsSection.style.display = 'none';
+                btnScheduleTab.classList.remove('active');
+                btnProfileTab.classList.remove('active');
+                btnFriendsTab.classList.remove('active');
+                btnGroupsTab.classList.remove('active');
+            }
+
+            btnScheduleTab.addEventListener('click', () => {
+                hideAllSections();
+                btnScheduleTab.classList.add('active');
+                scheduleSection.style.display = 'block';
+                scheduleSubToggles.style.display = 'flex';
+                dayTabsContainer.style.display = bottomNav.classList.contains('hide-tabs') ? 'none' : 'flex';
+            });
+
+            btnProfileTab.addEventListener('click', () => {
+                hideAllSections();
+                btnProfileTab.classList.add('active');
+                profileSection.style.display = 'block';
+                scheduleSubToggles.style.display = 'none';
+                dayTabsContainer.style.display = 'none';
+            });
+
+            btnFriendsTab.addEventListener('click', () => {
+                hideAllSections();
+                btnFriendsTab.classList.add('active');
+                friendsSection.style.display = 'block';
+                scheduleSubToggles.style.display = 'none';
+                dayTabsContainer.style.display = 'none';
+            });
+
+            btnGroupsTab.addEventListener('click', () => {
+                hideAllSections();
+                btnGroupsTab.classList.add('active');
+                groupsSection.style.display = 'block';
+                scheduleSubToggles.style.display = 'none';
+                dayTabsContainer.style.display = 'none';
+            });
+
+            const btnDay = document.getElementById('btnDayView');
+            const btnWeek = document.getElementById('btnWeekView');
+            const container = document.getElementById('mainContainer');
+            const bottomNav = document.getElementById('bottomNav');
+
+            btnDay.addEventListener('click', () => {
+                container.className = 'schedule-container view-day';
+                bottomNav.classList.remove('hide-tabs');
+                btnDay.classList.add('active');
+                btnWeek.classList.remove('active');
+            });
+            btnWeek.addEventListener('click', () => {
+                container.className = 'schedule-container view-week';
+                bottomNav.classList.add('hide-tabs');
+                btnWeek.classList.add('active');
+                btnDay.classList.remove('active');
+            });
+        });
+
+
+        /* ================= الخريطة: تحت التطوير ================= */
+        function openMap() { document.getElementById('mapModal').classList.add('active'); }
+
+        /* ================= المراسلة: نص / صور / فويس / ملفات ================= */
+        function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+        function jget(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v === null || v === undefined ? d : v; } catch (e) { return d; } }
+        function jset(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { alert('مساحة التخزين ممتلئة! امسح رسائل قديمة.'); return false; } }
+        function validId(id) { return /^[A-Za-z0-9_\-]+$/.test(id); }
+        function todayIdx() { const d = new Date().getDay(); return d <= 4 ? d : 0; }
+        const adminChatId = sid => 'adm_' + sid;
+        const dmChatId = (a, b) => 'dm_' + [a, b].sort().join('_');
+        const mySender = () => currentLoggedInUser.role === 'admin' ? '@admin' : currentLoggedInUser.id;
+
+        let _mdb = null, activeChat = null, recorder = null, recChunks = [], recSend = true;
+        function mediaDB() {
+            if (!_mdb) _mdb = new Promise((res, rej) => { const r = indexedDB.open('chatMedia', 1); r.onupgradeneeded = () => r.result.createObjectStore('m'); r.onsuccess = () => res(r.result); r.onerror = () => { _mdb = null; rej(r.error); }; });
+            return _mdb;
+        }
+        async function saveMedia(id, blob) { const db = await mediaDB(); return new Promise((res, rej) => { const t = db.transaction('m', 'readwrite'); t.objectStore('m').put(blob, id); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+        async function loadMedia(id) { const db = await mediaDB(); return new Promise((res, rej) => { const q = db.transaction('m').objectStore('m').get(id); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+
+        function unreadCount(id) {
+            const me = mySender(); const t = jget('chatReads', {})[id + '|' + me] || 0;
+            return (jget('chats', {})[id] || []).filter(m => m.from !== me && m.ts > t).length;
+        }
+        function unreadBadge(id) { const n = unreadCount(id); return n ? ` (${n})` : ''; }
+        function markRead(id) { const r = jget('chatReads', {}); r[id + '|' + mySender()] = Date.now(); jset('chatReads', r); }
+
+        function openChat(id, title) {
+            activeChat = { id, title };
+            document.getElementById('chatTitle').textContent = title;
+            document.getElementById('chatModal').classList.add('active');
+            markRead(id); renderChat();
+        }
+        function closeChat() {
+            if (recorder) { recSend = false; recorder.stop(); }
+            activeChat = null;
+            document.getElementById('chatModal').classList.remove('active');
+            if (!currentLoggedInUser) return;
+            if (currentLoggedInUser.role === 'admin') renderAdminMessages();
+            else { renderFriendsSystem(currentLoggedInUser); renderGroups(currentLoggedInUser); }
+        }
+        function openAdminChat() { if (currentLoggedInUser && currentLoggedInUser.role !== 'admin') openChat(adminChatId(currentLoggedInUser.id), '👨‍💼 المدير'); }
+        function openFriendChat(fid, fname) { openChat(dmChatId(currentLoggedInUser.id, fid), '💬 ' + fname); }
+
+        function mediaHtml(md) {
+            if (!md) return '';
+            const a = `data-mid="${esc(md.id)}" data-name="${esc(md.name)}"`;
+            if (md.kind === 'image') return `<img ${a} class="cm-img" alt="">`;
+            if (md.kind === 'audio') return `<audio ${a} controls></audio>`;
+            return `<a ${a} class="cm-file">📄 ${esc(md.name)}</a>`;
+        }
+        async function hydrateMedia(el) {
+            try {
+                let b = await loadMedia(el.dataset.mid).catch(() => null);
+                if (!b) { b = await GHSync.downloadMedia(el.dataset.mid); if (b) saveMedia(el.dataset.mid, b).catch(() => { }); }
+                if (!b) { el.title = 'الملف غير متاح على هذا المتصفح'; return; }
+                const u = URL.createObjectURL(b);
+                if (el.tagName === 'A') { el.href = u; el.download = el.dataset.name; }
+                else { el.src = u; if (el.tagName === 'IMG') el.onclick = () => window.open(u); }
+            } catch (e) { el.title = 'تعذر تحميل الملف'; }
+        }
+        function renderChat() {
+            if (!activeChat) return;
+            const box = document.getElementById('chatMsgs'); const me = mySender();
+            const msgs = jget('chats', {})[activeChat.id] || [];
+            box.innerHTML = msgs.length ? msgs.map(m => `<div class="cm ${m.from === me ? 'me' : 'them'}">${m.from !== me ? `<b>${esc(m.fromName)}</b>` : ''}${mediaHtml(m.media)}${m.text ? `<div>${esc(m.text)}</div>` : ''}<span class="ct">${esc(m.time)}</span></div>`).join('') : '<p class="empty-msg">ابدأ المحادثة... ✍️</p>';
+            box.scrollTop = box.scrollHeight;
+            box.querySelectorAll('[data-mid]').forEach(hydrateMedia);
+        }
+        function pushMsg(chatId, msg) {
+            const all = jget('chats', {});
+            (all[chatId] = all[chatId] || []).push({ id: 'm' + Date.now() + Math.random().toString(36).slice(2, 6), from: mySender(), fromName: currentLoggedInUser.name, time: fmtNow12(), ts: Date.now(), ...msg });
+            if (!jset('chats', all)) return;
+            if (activeChat && activeChat.id === chatId) { markRead(chatId); renderChat(); }
+        }
+        function sendChatText() {
+            const i = document.getElementById('chatText'); const t = i.value.trim();
+            if (!t || !activeChat) return;
+            pushMsg(activeChat.id, { text: t }); i.value = '';
+        }
+        async function sendChatMedia(blob, name, kind) {
+            if (!activeChat) return;
+            const chatId = activeChat.id;
+            if (kind === 'image' && (blob.type || '').startsWith('image/') && blob.size > 300 * 1024) {
+                try { const d = await shrinkImage(blob, 1280); blob = await (await fetch(d)).blob(); } catch (e) { }
+            }
+            if (blob.size > 6 * 1024 * 1024) return alert('الحجم الأقصى للملف 6 ميجا');
+            const id = 'f' + Date.now() + Math.random().toString(36).slice(2, 6);
+            try { await saveMedia(id, blob); } catch (e) { }
+            try {
+                GHSync.status('⏳ جاري رفع الملف...');
+                await GHSync.uploadMedia(id, blob, name);
+                GHSync.status('☁️ تم رفع الملف');
+            } catch (e) {
+                GHSync.status('⚠️ فشل رفع الملف', true);
+                return alert('تعذر رفع الملف، اتأكد من الإنترنت وجرّب تاني');
+            }
+            pushMsg(chatId, { media: { id, kind, name, type: blob.type } });
+        }
+        function onChatFilePicked(ev, kind) {
+            [...ev.target.files].forEach(f => sendChatMedia(f, f.name, kind === 'auto' ? (f.type.startsWith('image/') ? 'image' : 'file') : kind));
+            ev.target.value = '';
+        }
+        async function toggleRecording() {
+            const btn = document.getElementById('chatRecBtn');
+            if (recorder) { recorder.stop(); return; }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                recChunks = []; recSend = true; recorder = new MediaRecorder(stream);
+                recorder.ondataavailable = e => recChunks.push(e.data);
+                recorder.onstop = () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(recChunks, { type: recorder.mimeType || 'audio/webm' });
+                    recorder = null; btn.classList.remove('rec'); btn.textContent = '🎤';
+                    if (blob.size && recSend) sendChatMedia(blob, 'رسالة صوتية', 'audio');
+                };
+                recorder.start(); btn.classList.add('rec'); btn.textContent = '⏹️';
+            } catch (e) { recorder = null; alert('تعذر الوصول للميكروفون — اسمح بالإذن من المتصفح'); }
+        }
+
+        function shrinkImage(file, max) {
+            return new Promise((res, rej) => {
+                const img = new Image(); const u = URL.createObjectURL(file);
+                img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.85)); };
+                img.onerror = () => rej(); img.src = u;
+            });
+        }
+
+        function resetSessionUI() {
+            closeChat(); isChattingWithAdmin = false;
+            document.getElementById('chatbotWindow').classList.remove('active');
+            if (window._botInit) document.getElementById('chatbotMessages').innerHTML = window._botInit;
+            document.getElementById('btnScheduleTab').click();
+        }
+
+        // ترحيل الرسائل والمجموعات القديمة للنظام الجديد
+        function migrateLegacy() {
+            const users = jget('users', []); const gs = jget('groups', []); const chats = jget('chats', {}); let changed = false;
+            users.forEach(u => {
+                (u.groups || []).forEach(g => {
+                    gs.push({ id: g.id, name: g.name, owner: u.id, members: [{ id: u.id, name: u.name }], turns: g.turns || [] });
+                    chats['grp_' + g.id] = (g.messages || []).map((m, i) => ({ id: 'lg' + g.id + i, from: u.id, fromName: m.sender, text: m.text, time: m.time, ts: g.id + i }));
+                    changed = true;
+                });
+                if (u.groups && u.groups.length) u.groups = [];
+                if (u.role === 'admin' && u.adminMessages && u.adminMessages.length) {
+                    u.adminMessages.forEach((m, i) => { (chats[adminChatId(m.studentId)] = chats[adminChatId(m.studentId)] || []).push({ id: 'la' + Date.now() + i, from: m.studentId, fromName: m.studentName, text: m.text, time: m.time, ts: Date.now() + i }); });
+                    u.adminMessages = []; changed = true;
+                }
+            });
+            if (changed) { jset('users', users); jset('groups', gs); jset('chats', chats); }
+        }
+
+        // تحديث لحظي بين التابات + منع الكتابة فوق بيانات قديمة
+        window.addEventListener('storage', e => {
+            if (!currentLoggedInUser || !['chats', 'groups', 'users', 'chatReads'].includes(e.key)) return;
+            const fresh = jget('users', []).find(u => u.id === currentLoggedInUser.id);
+            if (fresh) currentLoggedInUser = fresh;
+            if (activeChat) renderChat();
+            if (currentLoggedInUser.role === 'admin') renderAdminMessages();
+            else { renderFriendsSystem(currentLoggedInUser); renderGroups(currentLoggedInUser); checkStudentNotifications(currentLoggedInUser); }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await GHSync.ready;
+            window._botInit = document.getElementById('chatbotMessages').innerHTML;
+            migrateLegacy();
+            // دخول تلقائي لو المستخدم سجّل قبل كده على نفس الجهاز
+            try {
+                const sess = JSON.parse(localStorage.getItem('session_user') || 'null');
+                if (sess) {
+                    const u = (JSON.parse(localStorage.getItem('users')) || []).find(x => x.id === sess.id && x.pass === sess.pass);
+                    if (u) {
+                        document.getElementById('loginId').value = u.id;
+                        document.getElementById('loginPass').value = u.pass;
+                        login();
+                    } else localStorage.removeItem('session_user');
+                }
+            } catch (e) { console.error('auto login failed', e); }
+        });
+    </script>
+    <button id="installBtn" style="display:none;position:fixed;right:12px;bottom:12px;z-index:99999;padding:10px 16px;border:0;border-radius:24px;background:#38bdf8;color:#05202e;font:bold 14px Tahoma,Arial;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer">⬇️ تثبيت التطبيق</button>
+    <script>
+        let _installEvt = null;
+        window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _installEvt = e; document.getElementById('installBtn').style.display = 'block'; });
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (!_installEvt) return; _installEvt.prompt(); await _installEvt.userChoice; _installEvt = null;
+            document.getElementById('installBtn').style.display = 'none';
+        });
+        window.addEventListener('appinstalled', () => { document.getElementById('installBtn').style.display = 'none'; });
+        if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    </script>
+</body>
+</html>
